@@ -1,0 +1,15 @@
+[scenario]
+name = "MLE-Bench"
+description = "75 Kaggle-style ML competitions evaluated end-to-end"
+
+[green_agent]
+image = "ghcr.io/YOUR_ORG/mle-bench-green:latest"
+port = 9010
+
+[purple_agent]
+image = "ghcr.io/arunshar/spatial-atlas:latest"
+port = 9019
+
+[config]
+# Example competition (change for different evaluations)
+competition_id = "spaceship-titanic"

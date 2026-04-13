@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "spatial-atlas-agent",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "src/server.py", "--host", "127.0.0.1", "--port", "9019"],
+      "port": 9019
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+[scenario]
+name = "FieldWorkArena"
+description = "Multimodal spatial QA for factory, warehouse, and retail environments"
+
+[green_agent]
+image = "ghcr.io/fujitsu-agentbeats/fieldworkarena-green-agent:latest"
+port = 9010
+
+[purple_agent]
+image = "ghcr.io/arunshar/spatial-atlas:latest"
+port = 9019
+
+[config]
+# FieldWorkArena uses the Fujitsu HuggingFace dataset
+hf_dataset = "Fujitsu/FieldWorkArena_Dataset"
