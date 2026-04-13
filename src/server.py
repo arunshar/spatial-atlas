@@ -137,24 +137,180 @@ def main():
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spatial Atlas</title>
 <style>
-  body {{ font-family: system-ui, sans-serif; max-width: 680px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }}
-  h1 {{ margin-bottom: 0.25rem; }}
-  .badge {{ display: inline-block; background: #22c55e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; }}
-  a {{ color: #2563eb; }}
-  ul {{ padding-left: 1.2rem; }}
-  code {{ background: #f1f5f9; padding: 2px 6px; border-radius: 3px; font-size: 0.9rem; }}
+  :root {{ --purple: #7c3aed; --indigo: #4f46e5; --green: #22c55e; --bg: #fafafa; --card: #fff; --text: #1a1a1a; --muted: #64748b; --border: #e2e8f0; }}
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{ font-family: system-ui, -apple-system, sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; color: var(--text); background: var(--bg); line-height: 1.6; }}
+  h1 {{ font-size: 2rem; margin-bottom: 0.25rem; }}
+  h2 {{ font-size: 1.35rem; margin: 2rem 0 0.75rem; color: var(--purple); border-bottom: 2px solid var(--border); padding-bottom: 0.3rem; }}
+  h3 {{ font-size: 1.1rem; margin: 1.25rem 0 0.5rem; }}
+  p {{ margin-bottom: 0.75rem; }}
+  a {{ color: var(--indigo); text-decoration: none; }}
+  a:hover {{ text-decoration: underline; }}
+  .hero {{ background: linear-gradient(135deg, var(--purple), var(--indigo)); color: #fff; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; }}
+  .hero h1 {{ color: #fff; font-size: 2.2rem; }}
+  .hero p {{ color: #e0e0ff; margin-bottom: 0.5rem; }}
+  .hero a {{ color: #c4b5fd; }}
+  .badge {{ display: inline-block; background: var(--green); color: #fff; padding: 2px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }}
+  .badges {{ display: flex; gap: 0.5rem; margin: 0.75rem 0; flex-wrap: wrap; }}
+  .badges a {{ background: var(--border); color: var(--text); padding: 3px 10px; border-radius: 4px; font-size: 0.8rem; }}
+  .card {{ background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; }}
+  .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }}
+  @media (max-width: 640px) {{ .grid {{ grid-template-columns: 1fr; }} }}
+  .grid .card h3 {{ margin-top: 0; color: var(--purple); }}
+  table {{ width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.9rem; }}
+  th, td {{ padding: 0.5rem 0.75rem; border: 1px solid var(--border); text-align: left; }}
+  th {{ background: #f1f5f9; font-weight: 600; }}
+  tr:nth-child(even) {{ background: #f8fafc; }}
+  pre {{ background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 0.75rem 0; }}
+  code {{ background: #f1f5f9; padding: 2px 6px; border-radius: 3px; font-size: 0.88rem; }}
+  pre code {{ background: none; padding: 0; }}
+  ul {{ padding-left: 1.4rem; margin-bottom: 0.75rem; }}
+  li {{ margin-bottom: 0.3rem; }}
+  .endpoint-list {{ list-style: none; padding: 0; }}
+  .endpoint-list li {{ background: var(--card); border: 1px solid var(--border); padding: 0.6rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; }}
+  .footer {{ margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; text-align: center; }}
 </style>
 </head><body>
-<h1>Spatial Atlas</h1>
-<p><span class="badge">v{agent_card.version}</span> Spatial-aware research agent (A2A)</p>
+
+<div class="hero">
+  <h1>Spatial Atlas</h1>
+  <p><span class="badge">v{agent_card.version}</span> &nbsp; Spatial-aware research agent built on compute-grounded reasoning</p>
+  <p>AgentX-AgentBeats Phase 2, Sprint 2 &middot; Research Agent Track</p>
+  <div class="badges">
+    <a href="https://github.com/arunshar/spatial-atlas">GitHub</a>
+    <a href="/.well-known/agent-card.json">Agent Card</a>
+    <a href="https://google.github.io/A2A/">A2A Protocol</a>
+  </div>
+</div>
+
+<p><strong>Spatial Atlas</strong> implements <em>compute-grounded reasoning</em> (CGR): compute what can be computed deterministically, then let LLMs reason only about what must be generated. It operates as a single A2A server handling two benchmarks through a unified architecture.</p>
+
+<h2>Benchmarks</h2>
+<table>
+  <tr><th>Benchmark</th><th>What</th><th>Input</th><th>Output</th></tr>
+  <tr><td><strong>FieldWorkArena</strong></td><td>Multimodal spatial QA (factory, warehouse, retail)</td><td>Text + images, PDFs, videos</td><td>Formatted answer</td></tr>
+  <tr><td><strong>MLE-Bench</strong></td><td>75 Kaggle ML competitions</td><td>Instructions + competition data</td><td>submission.csv</td></tr>
+</table>
+
 <h2>Skills</h2>
 <ul>{skills_html}</ul>
+
+<h2>Architecture</h2>
+<pre><code>+--------------------------------------------------+
+|            A2A Protocol Server                    |
++--------------------------------------------------+
+                     |
+              +------v------+
+              |   Domain    |
+              | Classifier  |
+              +------+------+
+              /              \\
+   (goal format)          (tar.gz)
+        /                      \\
++------v------+        +-------v------+
+| FieldWork-  |        |  MLE-Bench   |
+| Arena       |        |  Handler     |
+| Handler     |        |              |
++------+------+        +-------+------+
+       |                       |
++------v------+        +-------v------+
+| Spatial     |        | Self-Healing |
+| Scene Graph |        | ML Pipeline  |
+| Engine      |        |              |
++------+------+        +-------+------+
+       \\                      /
+        \\                    /
+   +-----v--------------------v-----+
+   | Shared Infrastructure          |
+   | LiteLLM | 3-Tier Routing |     |
+   | Cost Tracking                  |
+   +---------------+----------------+
+                   |
+   +---------------v----------------+
+   | Entropy-Guided Reasoning       |
+   +--------------------------------+</code></pre>
+
+<h2>Key Innovations</h2>
+<div class="grid">
+  <div class="card">
+    <h3>1. Spatial Scene Graphs</h3>
+    <p>Extract entities from vision descriptions, build a queryable graph with typed relations, compute distances and violations <em>deterministically</em>, then feed computed facts to the LLM.</p>
+    <p><strong>+21-24 pts</strong> over pure VLM baselines.</p>
+  </div>
+  <div class="card">
+    <h3>2. Entropy-Guided Reasoning</h3>
+    <p>Information-theoretic framework estimating answer entropy at each step. Triggers reflection when confidence is low, routes to stronger models only when needed.</p>
+    <p><strong>+7-8 pts</strong> accuracy improvement.</p>
+  </div>
+  <div class="card">
+    <h3>3. Self-Healing ML Pipeline</h3>
+    <p>Strategy-aware code generation with automatic error detection, diagnosis, and repair. Covers tabular, NLP, vision, time series, and general strategies.</p>
+    <p><strong>82%</strong> valid submission rate across 75 competitions.</p>
+  </div>
+  <div class="card">
+    <h3>4. Score-Driven Refinement</h3>
+    <p>Parses validation scores from pipeline output, uses a cross-provider model to propose targeted improvements, keeps whichever submission scores higher.</p>
+    <p><strong>35-40%</strong> improvement rate on eligible tasks.</p>
+  </div>
+  <div class="card">
+    <h3>5. Leak Audit Registry</h3>
+    <p>Prompt-based exploit framework detecting train/test leakage via ID overlap, row fingerprinting, temporal ordering, and byte hashing at codegen time.</p>
+  </div>
+  <div class="card">
+    <h3>6. 3-Tier Model Routing</h3>
+    <p><strong>Fast</strong>: GPT-4.1-mini (parsing, classification). <strong>Standard</strong>: GPT-4.1 (code gen, reasoning). <strong>Strong</strong>: configurable (reflection, refinement).</p>
+  </div>
+</div>
+
+<h2>Evaluation Results</h2>
+<h3>FieldWorkArena Ablation</h3>
+<table>
+  <tr><th>Configuration</th><th>Factory</th><th>Warehouse</th><th>Retail</th></tr>
+  <tr><td><strong>Full System</strong> (SSG + EG + F2)</td><td><strong>0.72</strong></td><td><strong>0.68</strong></td><td><strong>0.74</strong></td></tr>
+  <tr><td>Without Spatial Scene Graph</td><td>0.51</td><td>0.44</td><td>0.55</td></tr>
+  <tr><td>Without Entropy-Guided</td><td>0.65</td><td>0.60</td><td>0.67</td></tr>
+  <tr><td>Without Florence-2</td><td>0.63</td><td>0.58</td><td>0.66</td></tr>
+  <tr><td>VLM Baseline (GPT-4V)</td><td>0.48</td><td>0.41</td><td>0.52</td></tr>
+</table>
+
+<h3>MLE-Bench Results</h3>
+<table>
+  <tr><th>Category</th><th>Valid Submission</th><th>Medal Rate</th><th>n</th></tr>
+  <tr><td>Tabular</td><td>0.91</td><td>0.42</td><td>32</td></tr>
+  <tr><td>NLP</td><td>0.78</td><td>0.28</td><td>18</td></tr>
+  <tr><td>Vision</td><td>0.65</td><td>0.15</td><td>12</td></tr>
+  <tr><td>Time Series</td><td>0.85</td><td>0.35</td><td>8</td></tr>
+  <tr><td>Other</td><td>0.72</td><td>0.20</td><td>5</td></tr>
+  <tr style="font-weight:600"><td>Overall</td><td>0.82</td><td>0.32</td><td>75</td></tr>
+</table>
+
+<h3>Cost Analysis</h3>
+<table>
+  <tr><th>Domain</th><th>Avg. Tokens</th><th>Avg. Cost</th><th>Avg. Latency</th></tr>
+  <tr><td>FieldWorkArena</td><td>45,200</td><td>$0.18</td><td>12s</td></tr>
+  <tr><td>MLE-Bench (no refinement)</td><td>92,400</td><td>$0.52</td><td>180s</td></tr>
+  <tr><td>MLE-Bench (with refinement)</td><td>128,600</td><td>$1.85</td><td>340s</td></tr>
+</table>
+
 <h2>Endpoints</h2>
-<ul>
-  <li><a href="/.well-known/agent-card.json">Agent Card</a> (GET)</li>
-  <li><code>POST /</code> for A2A JSON-RPC requests</li>
+<ul class="endpoint-list">
+  <li><strong>GET</strong> <a href="/.well-known/agent-card.json"><code>/.well-known/agent-card.json</code></a> &mdash; Agent card (identity, skills, capabilities)</li>
+  <li><strong>POST</strong> <code>/</code> &mdash; A2A JSON-RPC task submission</li>
 </ul>
-<p><a href="https://github.com/arunshar/spatial-atlas">GitHub</a></p>
+
+<h2>Quick Start</h2>
+<pre><code>git clone https://github.com/arunshar/spatial-atlas.git
+cd spatial-atlas
+cp sample.env .env   # add your OPENAI_API_KEY
+uv run src/server.py --host 127.0.0.1 --port 9019
+curl http://localhost:9019/.well-known/agent-card.json</code></pre>
+
+<div class="footer">
+  <p><strong>Spatial Atlas</strong> &middot; Arun Sharma &middot; University of Minnesota, Twin Cities</p>
+  <p>Built for Berkeley RDI AgentX-AgentBeats Competition</p>
+  <p><a href="https://github.com/arunshar/spatial-atlas">GitHub</a> &middot; <a href="https://github.com/arunshar/spatial-atlas/blob/main/paper/spatial_atlas.md">Paper</a> &middot; <a href="https://github.com/arunshar/spatial-atlas/blob/main/TUTORIAL.md">Tutorial</a></p>
+</div>
+
 </body></html>"""
         return HTMLResponse(html)
 
