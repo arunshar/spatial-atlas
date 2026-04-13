@@ -1,0 +1,29 @@
+{
+  "capabilities": {
+    "streaming": true
+  },
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "description": "Spatial-aware research agent built on compute-grounded reasoning (CGR). Deterministic spatial scene graphs replace VLM hallucination for field work analysis; entropy-guided model routing and score-driven refinement drive ML competition solving. A2A-compliant for AgentBeats Phase 2 Sprint 2.",
+  "name": "Spatial Atlas",
+  "preferredTransport": "JSONRPC",
+  "protocolVersion": "0.3.0",
+  "skills": [
+    {
+      "description": "Analyzes factory, warehouse, and retail environments from images, videos, PDFs, and documents. Spatial reasoning with structured scene graphs, safety inspection, and formatted reporting.",
+      "examples": ["Analyze warehouse layout for safety violations"],
+      "id": "fieldwork-research",
+      "name": "Multimodal Field Research",
+      "tags": ["spatial", "multimodal", "vision", "fieldwork", "research"]
+    },
+    {
+      "description": "Solves Kaggle-style ML competitions end-to-end: data analysis, feature engineering, model training, and submission generation.",
+      "examples": ["Train a model for the spaceship-titanic competition"],
+      "id": "ml-engineering",
+      "name": "ML Engineering",
+      "tags": ["ml", "kaggle", "data-science", "code-generation"]
+    }
+  ],
+  "url": "https://arun0808-spatial-atlas.hf.space/",
+  "version": "1.0.0"
+}
