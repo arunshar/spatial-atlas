@@ -67,6 +67,15 @@ class Config:
     # === FieldWork-specific ===
     max_video_frames: int = 30
     spatial_precision: int = 2  # decimal places for coordinates
+    # Perception engine for the FieldWork scene step:
+    #   "scenegraph" (default) = LLM extracts entities + guesses coordinates from text;
+    #   "metric"               = SpatialClaw SAM3 + Depth-Anything-3 measure real 3D
+    #                            positions (requires the spatial_agent package + a running
+    #                            GPU tool server; falls back to scenegraph if unavailable).
+    fieldwork_engine: str = field(
+        default_factory=lambda: _env_or("ATLAS_FIELDWORK_ENGINE", "scenegraph")
+    )
+    reconstruct_max_frames: int = 32  # max frames per SpatialClaw Reconstruct call
 
     # === MLE-Bench-specific ===
     code_execution_timeout: int = 600  # seconds per code execution

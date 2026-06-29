@@ -83,7 +83,30 @@ class FieldWorkHandler:
             new_agent_text_message("Building spatial scene graph..."),
         )
 
-        scene = await self.spatial.build_scene(task.query, file_contexts)
+        # 3a. Optional metric perception: measure real 3D positions with SpatialClaw
+        # (SAM3 + Depth-Anything-3) instead of letting the LLM guess coordinates.
+        # Falls back to the scene-graph engine on any unavailability.
+        scene = None
+        if getattr(self.config, "fieldwork_engine", "scenegraph") == "metric":
+            try:
+                from fieldwork.perception import build_metric_scene
+                image_bytes = [
+                    (data if isinstance(data, bytes) else self.vision._decode_data(data))
+                    for (_name, mime, data) in file_parts
+                    if mime.startswith("image/")
+                ]
+                scene = await build_metric_scene(
+                    task.query, image_bytes, self.llm, self.config
+                )
+                logger.info("metric perception: %d grounded entities", scene.entity_count)
+            except Exception as e:  # noqa: BLE001 - degrade gracefully to scene-graph
+                logger.warning(
+                    "metric backend unavailable (%s); falling back to scene-graph", e
+                )
+                scene = None
+
+        if scene is None:
+            scene = await self.spatial.build_scene(task.query, file_contexts)
         logger.info(
             f"Scene: {scene.entity_count} entities, "
             f"{len(scene.relations)} relations, "
