@@ -6,8 +6,6 @@ Tests domain classification, message parsing, and formatting logic
 """
 
 import json
-import pytest
-from unittest.mock import MagicMock
 
 from config import Config
 from fieldwork.parser import GoalParser
@@ -52,7 +50,10 @@ class TestGoalParser:
 
     def test_standard_goal(self):
         parser = GoalParser()
-        goal = "# Question\nHow many forklifts?\n# Input Data\nimage1.jpg image2.jpg\n# Output Format\nnumber"
+        goal = (
+            "# Question\nHow many forklifts?\n# Input Data\n"
+            "image1.jpg image2.jpg\n# Output Format\nnumber"
+        )
         task = parser.parse(goal)
         assert "forklifts" in task.query
         assert task.output_format == "number"

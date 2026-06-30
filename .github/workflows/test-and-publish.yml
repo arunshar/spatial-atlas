@@ -9,7 +9,31 @@ on:
       - 'v*'
 
 jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+      - name: Install (locked) + test deps
+        run: uv sync --extra test
+      - name: Lint (errors only) on changed modules + tests
+        run: uv run --with ruff ruff check --select E,F src/fieldwork/perception.py src/config.py tests
+      - name: Unit + integration + smoke (no GPU/dataset)
+        run: |
+          uv run pytest -m "not e2e and not gpu" \
+            --cov=fieldwork.perception --cov-report=term-missing \
+            --cov-fail-under=90 --junitxml=junit.xml
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-spatial-atlas
+          path: junit.xml
+
   test-and-publish:
+    needs: unit-tests
     runs-on: ubuntu-latest
 
     permissions:
