@@ -19,3 +19,6 @@ htmlcov/
 paper/*.aux
 paper/*.log
 paper/*.out
+
+# Local-only session handoffs/ledgers (MSI operational details; never publish)
+sessions/
