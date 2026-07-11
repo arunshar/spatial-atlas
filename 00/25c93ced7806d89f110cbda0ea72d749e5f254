@@ -1,0 +1,19 @@
+.gitignore
+  s_f1917f369dc0f0::t_d84b7f06e472df 22-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "0025c93ced7806d89f110cbda0ea72d749e5f254",
+  "prompts": {},
+  "sessions": {
+    "s_f1917f369dc0f0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d9e08e7e-ba4a-4a36-aa00-b109f0486e74",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
