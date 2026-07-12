@@ -1,5 +1,5 @@
 """
-Spatial Atlas — Agent Unit Tests
+Spatial Atlas: Agent Unit Tests
 
 Tests domain classification, message parsing, and formatting logic
 (without requiring actual API keys or LLM calls).
@@ -87,8 +87,7 @@ class TestAnswerFormatter:
     def test_format_json_extraction(self):
         fmt = AnswerFormatter()
         result = fmt.format_answer(
-            'The answer is {"workers": 5, "violations": 2} based on my analysis.',
-            "json"
+            'The answer is {"workers": 5, "violations": 2} based on my analysis.', "json"
         )
         parsed = json.loads(result)
         assert parsed["workers"] == 5
@@ -140,10 +139,14 @@ class TestSpatialScene:
         from fieldwork.spatial import SpatialEntity, SpatialScene
 
         scene = SpatialScene()
-        scene.add_entity(SpatialEntity(
-            id="w1", label="worker", zone="loading_dock",
-            attributes={"wearing_ppe": False},
-        ))
+        scene.add_entity(
+            SpatialEntity(
+                id="w1",
+                label="worker",
+                zone="loading_dock",
+                attributes={"wearing_ppe": False},
+            )
+        )
         scene.safety_rules = ["Workers must wear PPE"]
         violations = scene.check_constraints()
         assert len(violations) >= 1
@@ -153,15 +156,24 @@ class TestSpatialScene:
         from fieldwork.spatial import SpatialEntity, SpatialScene
 
         scene = SpatialScene()
-        scene.add_entity(SpatialEntity(
-            id="w1", label="worker", position=(1.0, 2.0), zone="dock"
-        ))
+        scene.add_entity(SpatialEntity(id="w1", label="worker", position=(1.0, 2.0), zone="dock"))
         facts = scene.to_fact_sheet()
         assert "worker" in facts
         assert "dock" in facts
 
+    def test_fact_sheet_preserves_zero_distance(self):
+        from fieldwork.spatial import SpatialEntity, SpatialRelation, SpatialScene
+
+        scene = SpatialScene()
+        scene.add_entity(SpatialEntity("a", "Region 0", (1.0, 1.0)))
+        scene.add_entity(SpatialEntity("b", "Region 1", (1.0, 1.0)))
+        scene.add_relation(SpatialRelation("a", "distance_to", "b", 0.0))
+
+        assert "distance: 0.0m" in scene.to_fact_sheet()
+
     def test_empty_scene(self):
         from fieldwork.spatial import SpatialScene
+
         scene = SpatialScene()
         assert scene.entity_count == 0
         assert scene.violation_count == 0
@@ -173,12 +185,14 @@ class TestCostTracker:
 
     def test_tracker_init(self):
         from cost.tracker import CostTracker
+
         tracker = CostTracker()
         assert tracker.stats.total_tokens == 0
         assert tracker.has_budget()
 
     def test_budget_exceeded(self):
         from cost.tracker import CostTracker
+
         tracker = CostTracker(max_tokens=150_000)
         tracker.stats.prompt_tokens = 100_000
         tracker.stats.completion_tokens = 60_000

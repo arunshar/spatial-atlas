@@ -35,6 +35,19 @@ def _env_or(var: str, default: str) -> str:
     return value if value else default
 
 
+def _optional_bool_env(var: str) -> bool | None:
+    """Parse an optional boolean environment variable strictly."""
+    value = os.environ.get(var)
+    if value is None or not value.strip():
+        return None
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{var} must be one of true/false, yes/no, on/off, or 1/0; got {value!r}")
+
+
 # Default model identifiers. Kept at module scope (not just inside the
 # dataclass defaults) so both Config and startup logging can reference
 # them and stay in sync.
@@ -47,9 +60,7 @@ DEFAULT_VISION_MODEL = "openai/gpt-4.1"
 @dataclass
 class Config:
     # === Model Tiers ===
-    fast_model: str = field(
-        default_factory=lambda: _env_or("ATLAS_FAST_MODEL", DEFAULT_FAST_MODEL)
-    )
+    fast_model: str = field(default_factory=lambda: _env_or("ATLAS_FAST_MODEL", DEFAULT_FAST_MODEL))
     standard_model: str = field(
         default_factory=lambda: _env_or("ATLAS_STANDARD_MODEL", DEFAULT_STANDARD_MODEL)
     )
@@ -58,6 +69,12 @@ class Config:
     )
     vision_model: str = field(
         default_factory=lambda: _env_or("ATLAS_VISION_MODEL", DEFAULT_VISION_MODEL)
+    )
+    # Optional vLLM chat-template control. Leave unset for hosted providers.
+    # MSI benchmark runners set this to false so Qwen returns task content
+    # directly instead of spending the output budget on hidden reasoning.
+    llm_enable_thinking: bool | None = field(
+        default_factory=lambda: _optional_bool_env("ATLAS_ENABLE_THINKING")
     )
 
     # === Cost Budgets ===
@@ -69,12 +86,16 @@ class Config:
     spatial_precision: int = 2  # decimal places for coordinates
     # Perception engine for the FieldWork scene step:
     #   "scenegraph" (default) = LLM extracts entities + guesses coordinates from text;
-    #   "metric"               = SpatialClaw SAM3 + Depth-Anything-3 measure real 3D
-    #                            positions (requires the spatial_agent package + a running
-    #                            GPU tool server; falls back to scenegraph if unavailable).
+    #   "metric"               = SpatialClaw exact benchmark regions or SAM3 plus
+    #                            Depth-Anything-3 measure real 3D positions (requires the
+    #                            spatial_agent package + a running GPU tool server; falls
+    #                            back to scenegraph if unavailable).
     fieldwork_engine: str = field(
         default_factory=lambda: _env_or("ATLAS_FIELDWORK_ENGINE", "scenegraph")
     )
+    # Evaluation drivers set this when a metric row must fail rather than silently
+    # falling back to the scene-graph baseline. Production keeps graceful fallback.
+    fieldwork_metric_strict: bool = False
     reconstruct_max_frames: int = 32  # max frames per SpatialClaw Reconstruct call
 
     # === MLE-Bench-specific ===
