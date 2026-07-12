@@ -280,6 +280,122 @@ def test_qspatial_parser_rejects_negative_space_without_tools(png_bytes):
     assert evidence["fallback_used"] is False
 
 
+@pytest.mark.parametrize(
+    ("question", "row_id", "message"),
+    [
+        ("", None, "nonempty string"),
+        (
+            "What is the horizontal gap in the remaining area of the bookshelf next to the last "
+            "book on the left side?",
+            0,
+            "unexpected row ID",
+        ),
+        ("How far apart are the two objects?", None, "outside the frozen QSpatial grammar"),
+    ],
+)
+def test_qspatial_parser_rejects_invalid_or_out_of_contract_questions(question, row_id, message):
+    with pytest.raises(RuntimeError, match=message):
+        perception.parse_qspatial_gap_question(question, row_id=row_id)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    ("missing_field", "measurement_family", "slice_hash", "row_id"),
+)
+def test_qspatial_evidence_rejects_metadata_drift(mutation):
+    parser_record = perception.parse_qspatial_gap_question(
+        "What is the minimum distance between the coffee grinder and the base of the "
+        "gooseneck kettle in the image?",
+        row_id=0,
+    )
+    metadata = _qspatial_metadata(0)
+    if mutation == "missing_field":
+        metadata.pop("cluster_id")
+    elif mutation == "measurement_family":
+        metadata["measurement_family"] = "wrong"
+    elif mutation == "slice_hash":
+        metadata["slice_sha256"] = "0" * 64
+    else:
+        metadata["row_id"] = 1
+
+    with pytest.raises(RuntimeError, match="manifest_mismatch"):
+        perception._qspatial_evidence_base(b"question", b"image", parser_record, metadata)
+
+
+def test_qspatial_scene_validator_rejects_invalid_evidence_before_scene_access():
+    evidence = {
+        "fallback_used": False,
+        "geometry_valid": True,
+        "geometry_status": "ok",
+        "geometry": {"contract_sha256": perception.QSPATIAL_GEOMETRY_PROTOCOL_SHA256},
+        "parser": {"contract_sha256": perception.QSPATIAL_PARSER_PROTOCOL_SHA256},
+    }
+    scene = SpatialScene()
+
+    for mutation, message in (
+        (lambda: evidence.__setitem__("fallback_used", True), "forbids fallback"),
+        (lambda: evidence.__setitem__("geometry_valid", False), "requires valid geometry"),
+        (lambda: evidence.__setitem__("geometry", None), "has no geometry evidence"),
+        (
+            lambda: evidence.__setitem__("geometry", {"contract_sha256": "wrong"}),
+            "geometry contract drifted",
+        ),
+        (
+            lambda: evidence.__setitem__("parser", {"contract_sha256": "wrong"}),
+            "parser contract drifted",
+        ),
+    ):
+        evidence.update(
+            {
+                "fallback_used": False,
+                "geometry_valid": True,
+                "geometry_status": "ok",
+                "geometry": {"contract_sha256": perception.QSPATIAL_GEOMETRY_PROTOCOL_SHA256},
+                "parser": {"contract_sha256": perception.QSPATIAL_PARSER_PROTOCOL_SHA256},
+            }
+        )
+        mutation()
+        with pytest.raises(RuntimeError, match=message):
+            perception.validate_qspatial_gap_scene(scene, evidence)
+
+
+def test_centroid_finiteness_rejects_non_iterable_values():
+    assert perception._centroid_is_finite(object()) is False
+
+
+@pytest.mark.parametrize(
+    ("points", "confidence", "message"),
+    [
+        (np.zeros((4, 4), dtype=float), np.ones((4, 4), dtype=float), "point-map shape"),
+        (np.zeros((4, 4, 3), dtype=float), np.ones((4, 3), dtype=float), "confidence-map shape"),
+    ],
+)
+def test_point_maps_reject_misaligned_da3_payloads(points, confidence, message):
+    class PointStore:
+        def __init__(self):
+            self.points = [points]
+            self.confidence = [confidence]
+
+        @staticmethod
+        def get_by_frame_index(_frame_index):
+            return 0
+
+    reconstruction = types.SimpleNamespace(points=PointStore())
+    with pytest.raises(RuntimeError, match=message):
+        perception._point_maps_for_frame(reconstruction, 0)
+
+
+def test_qspatial_async_entrypoint_requires_an_image():
+    with pytest.raises(RuntimeError, match="no image"):
+        asyncio.run(
+            perception.build_qspatial_gap_scene(
+                "What is the minimum distance between the bollards in the image?",
+                [],
+                Config(),
+            )
+        )
+
+
 def test_qspatial_backend_builds_frozen_surface_gap_scene(png_bytes):
     points, confidence, left, right = _horizontal_gap_geometry()
     question = (
