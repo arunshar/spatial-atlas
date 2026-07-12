@@ -1,0 +1,21 @@
+tests/test_perception.py
+  s_c339ca357cc531::t_920e7ebda16a15 283-365
+  s_c339ca357cc531::t_16dbfd48ed207d 366-387
+  s_c339ca357cc531::t_51f23e306f76eb 388-398
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "545b7429f3f6013a9a4cac30e306188b32fac3c7",
+  "prompts": {},
+  "sessions": {
+    "s_c339ca357cc531": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5234-51ff-7f23-a378-2834cc7022f3",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
