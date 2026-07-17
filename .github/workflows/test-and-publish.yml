@@ -8,18 +8,32 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: read
+
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
       - name: Set up uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@e4db8464a088ece1b920f60402e813ea4de65b8f # v4
+        with:
+          enable-cache: false
       - name: Install (locked) + test deps
-        run: uv sync --extra test
-      - name: Lint (errors only) on changed modules + tests
-        run: uv run --with ruff ruff check --select E,F src/fieldwork/perception.py src/config.py tests
+        run: uv sync --frozen --extra test
+      - name: Audit locked Python dependencies
+        run: |
+          uv export --frozen --no-hashes --format requirements-txt -o /tmp/requirements.txt
+          uvx --from pip-audit==2.10.1 pip-audit \
+            --no-deps --disable-pip -r /tmp/requirements.txt
+      - name: Lint application and tests
+        run: uv run --with ruff ruff check src tests
+      - name: Scan application security patterns
+        run: uvx --from bandit==1.9.4 bandit -q -r src
       - name: Unit + integration + smoke (no GPU/dataset)
         run: |
           uv run pytest -m "not e2e and not gpu" \
@@ -27,7 +41,7 @@ jobs:
             --cov-fail-under=90 --junitxml=junit.xml
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: junit-spatial-atlas
           path: junit.xml
@@ -42,11 +56,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
 
       - name: Extract metadata for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -56,7 +72,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
         with:
           context: .
           push: false
@@ -67,20 +83,31 @@ jobs:
 
       - name: Start agent container
         env:
-            SECRETS_JSON: ${{ toJson(secrets) }}
+          CI_BEARER_TOKEN: ci-only-spatial-atlas-boundary-token
+          META_TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          echo "$SECRETS_JSON" | jq -r 'to_entries[] | "\(.key)=\(.value)"' > .env
-          docker run -d -p 9019:9019 --name agent-container --env-file .env $(echo "${{ steps.meta.outputs.tags }}" | head -n1) --host 0.0.0.0 --port 9019
+          IMAGE_TAG="$(printf '%s\n' "$META_TAGS" | head -n1)"
+          docker run -d -p 9019:9019 --name agent-container \
+            -e ATLAS_BEARER_TOKEN="$CI_BEARER_TOKEN" \
+            "$IMAGE_TAG" --host 0.0.0.0 --port 9019
           timeout 30 bash -c 'until curl -sf http://localhost:9019/.well-known/agent-card.json > /dev/null; do sleep 1; done'
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v4
-
-      - name: Install test dependencies
-        run: uv sync --extra test
-
-      - name: Run tests
-        run: uv run pytest -v --agent-url http://localhost:9019
+      - name: Exercise authenticated A2A boundary
+        env:
+          CI_BEARER_TOKEN: ci-only-spatial-atlas-boundary-token
+        run: |
+          payload='{"id":"ci-valid-request","jsonrpc":"2.0","method":"message/send","params":{"message":{"kind":"message","messageId":"ci-valid-message","parts":[{"kind":"text","text":"# Competition\nMLE-Bench integration boundary"}],"role":"user"}}}'
+          unauth_status="$(curl -sS -o /tmp/unauth.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' --data "$payload" http://localhost:9019/)"
+          test "$unauth_status" = 401
+          auth_status="$(curl -sS -o /tmp/auth.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -H "Authorization: Bearer $CI_BEARER_TOKEN" \
+            --data "$payload" http://localhost:9019/)"
+          test "$auth_status" = 200
+          grep -q '"jsonrpc"' /tmp/auth.json
+          grep -q '"state":"failed"' /tmp/auth.json
+          grep -q 'could not complete this task' /tmp/auth.json
 
       - name: Stop container and show logs
         if: always()
@@ -91,7 +118,7 @@ jobs:
 
       - name: Log in to GitHub Container Registry
         if: success() && github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -99,11 +126,15 @@ jobs:
 
       - name: Push Docker image
         if: success() && github.event_name != 'pull_request'
-        run: docker push --all-tags ghcr.io/${GITHUB_REPOSITORY,,}
+        run: docker push --all-tags "ghcr.io/${GITHUB_REPOSITORY,,}"
 
       - name: Output image digest
         if: success() && github.event_name != 'pull_request'
+        env:
+          META_TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          echo "## Docker Image Published :rocket:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Docker Image Published :rocket:"
+            echo ""
+            printf '**Tags:** %s\n' "$META_TAGS"
+          } >> "$GITHUB_STEP_SUMMARY"

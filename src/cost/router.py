@@ -1,5 +1,5 @@
 """
-Spatial Atlas — 3-Tier Model Router
+Spatial Atlas: 3-Tier Model Router
 
 Routes tasks to appropriate model tiers based on complexity.
 Fast for classification/parsing, Standard for reasoning/code, Strong for spatial/reflection.

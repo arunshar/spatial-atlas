@@ -14,6 +14,7 @@ from types import ModuleType, SimpleNamespace
 import pytest
 
 import eval_bench as driver
+from cost.tracker import CostTracker
 from fakes import FakeFieldWorkHandler, FakeLLM
 
 
@@ -298,6 +299,7 @@ async def test_run_writes_schema_usage_score_and_benchmark_summary(tmp_path, png
         "gt",
         "score",
         "usage",
+        "llm_call_telemetry",
         "latency_seconds",
         "engine",
         "requested_engine",
@@ -323,6 +325,7 @@ async def test_run_writes_schema_usage_score_and_benchmark_summary(tmp_path, png
         "num_calls": 1,
         "estimated_cost_usd": 0.01,
     }
+    assert row["llm_call_telemetry"] is None
 
     goal, file_parts = handler.calls[0]
     assert "# Question\ndistance question" in goal
@@ -1305,6 +1308,106 @@ async def test_label_free_run_never_reads_ground_truth_or_scores_before_sealing(
         driver.PRESCORE_SCHEMA
     )
     driver._assert_label_free(row, "test row")
+
+
+@pytest.mark.asyncio
+async def test_label_free_row_contains_exact_sanitized_llm_call_delta(tmp_path, png_bytes):
+    image = _image(tmp_path, png_bytes, "qspatial-telemetry.png")
+    sample = LabelFreeSample(0, "telemetry gap", image)
+    benchmark = FakeBenchmark([sample])
+    config = SimpleNamespace(
+        fieldwork_engine="scenegraph",
+        fieldwork_metric_strict=False,
+        model_tiers={"main": "fake/model"},
+        llm_enable_thinking=None,
+    )
+    llm = SimpleNamespace(config=config, cost_tracker=CostTracker())
+
+    class TelemetryHandler(FakeFieldWorkHandler):
+        async def handle(self, text, file_parts, updater, **kwargs):
+            await updater.update_status("working", "telemetry")
+            self.calls.append((text, file_parts))
+            self.handle_kwargs.append(kwargs)
+            self.last_fieldwork_engine = "scenegraph"
+            response = SimpleNamespace(
+                id="provider-id-not-for-journal",
+                choices=[
+                    SimpleNamespace(
+                        finish_reason="stop",
+                        message=SimpleNamespace(content="1.25 meter", reasoning_content=None),
+                    )
+                ],
+                usage=SimpleNamespace(
+                    prompt_tokens=3,
+                    completion_tokens=2,
+                    total_tokens=5,
+                    completion_tokens_details=SimpleNamespace(reasoning_tokens=0),
+                ),
+                _hidden_params={"response_cost": 0.0},
+            )
+            self.llm.cost_tracker.track(
+                response,
+                role="main",
+                model_tier="main",
+                call_kind="generate_with_messages",
+                configured_max_tokens=8192,
+            )
+            return "1.25 meter"
+
+    output = tmp_path / "qspatial-telemetry-run"
+    await driver.run_benchmark(
+        benchmark,
+        TelemetryHandler(config=config, llm=llm),
+        llm,
+        FakeScoring(),
+        engine="scenegraph",
+        output_dir=output,
+    )
+
+    row = _records(output / driver.PREDICTIONS_FILENAME)[0]
+    assert row["usage"]["num_calls"] == 1
+    assert len(row["llm_call_telemetry"]) == row["usage"]["num_calls"]
+    call = row["llm_call_telemetry"][0]
+    assert call["role"] == call["model_tier"] == "main"
+    assert call["call_kind"] == "generate_with_messages"
+    assert call["configured_max_tokens"] == 8192
+    assert call["provider_finish_reason"] == "stop"
+    assert call["message_content_empty"] is False
+    assert call["reasoning_content_empty"] is True
+    serialized = json.dumps(row, sort_keys=True)
+    assert "provider-id-not-for-journal" not in serialized
+    assert "1.25 meter" in serialized
+    driver._assert_label_free(row, "telemetry test row")
+
+
+def test_real_tracker_telemetry_count_mismatch_fails_closed():
+    class BrokenTracker(CostTracker):
+        def telemetry_since(self, cursor):
+            super().telemetry_since(cursor)
+            return []
+
+    tracker = BrokenTracker()
+    llm = SimpleNamespace(cost_tracker=tracker)
+    before_usage = driver._usage_snapshot(llm)
+    cursor = driver._llm_call_telemetry_cursor(llm)
+    tracker.track(
+        SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    finish_reason="stop",
+                    message=SimpleNamespace(content="ok", reasoning_content=None),
+                )
+            ],
+            usage=SimpleNamespace(prompt_tokens=1, completion_tokens=1, total_tokens=2),
+        ),
+        role="main",
+        model_tier="main",
+        call_kind="generate",
+        configured_max_tokens=128,
+    )
+
+    with pytest.raises(ValueError, match="telemetry count does not match usage num_calls"):
+        driver._sample_observability(llm, before_usage, cursor)
 
 
 @pytest.mark.asyncio

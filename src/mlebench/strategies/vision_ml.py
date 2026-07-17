@@ -1,6 +1,6 @@
 """Strategy template for image/vision competitions."""
 
-VISION_TEMPLATE = '''
+VISION_TEMPLATE = """
 # === Vision Strategy (Feature Extraction + Classifier) ===
 # For competitions with image data. Uses pre-extracted features or
 # simple pixel-based features when deep learning is impractical.
@@ -58,7 +58,7 @@ if image_dir:
             except Exception:
                 return np.zeros(size[0] * size[1] * 3)
 
-        # This is a simple baseline — real competitions need deeper models
+        # This is a simple baseline; real competitions need deeper models
         # But for a robust submission that doesn't crash, this works
     except ImportError:
         print("PIL not available, falling back to tabular features")
@@ -98,4 +98,4 @@ if not image_dir:
     submission[TARGET] = predictions
     submission.to_csv("SUBMISSION_PATH", index=False)
     print(f"Submission saved: {submission.shape}")
-'''
+"""

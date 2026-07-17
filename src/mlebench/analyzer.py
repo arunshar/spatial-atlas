@@ -1,5 +1,5 @@
 """
-Spatial Atlas — Competition Analyzer
+Spatial Atlas: Competition Analyzer
 
 Reads MLE-Bench competition description and data files to determine:
 1. Task type (classification, regression, NLP, vision, time series)
@@ -20,15 +20,16 @@ logger = logging.getLogger("spatial-atlas.mlebench.analyzer")
 @dataclass
 class CompetitionAnalysis:
     """Structured analysis of an MLE-Bench competition."""
+
     competition_id: str = ""
-    task_type: str = "tabular_classification"   # tabular_classification, tabular_regression, nlp, vision, timeseries, general
-    metric: str = "accuracy"                     # evaluation metric name
-    metric_direction: str = "maximize"           # maximize or minimize
-    target_column: str = ""                      # column to predict
-    submission_format: str = ""                  # expected CSV format description
-    data_description: str = ""                   # brief description of the data
+    task_type: str = "tabular_classification"  # tabular_classification, tabular_regression, nlp, vision, timeseries, general
+    metric: str = "accuracy"  # evaluation metric name
+    metric_direction: str = "maximize"  # maximize or minimize
+    target_column: str = ""  # column to predict
+    submission_format: str = ""  # expected CSV format description
+    data_description: str = ""  # brief description of the data
     available_files: list[str] = field(default_factory=list)
-    strategy: str = "general"                    # which strategy template to use
+    strategy: str = "general"  # which strategy template to use
     key_insights: list[str] = field(default_factory=list)
 
 
@@ -62,7 +63,7 @@ Rules:
 - For binary/multiclass classification on structured data, set task_type to "tabular_classification" and strategy to "tabular"
 - For regression on structured data, set task_type to "tabular_regression" and strategy to "tabular"
 - If unsure, set strategy to "general"
-- Be precise about the metric name — this determines how we optimize"""
+- Be precise about the metric name; this determines how we optimize"""
 
 
 class CompetitionAnalyzer:

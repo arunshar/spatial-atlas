@@ -27,8 +27,12 @@ pass; this is free signal with zero false-positive cost.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Callable
+
+
+logger = logging.getLogger("spatial-atlas.mlebench.leaks")
 
 
 LEAK_AUDIT_PREAMBLE = """\
@@ -95,10 +99,10 @@ Strategy:
 The metric is AUC on `requester_received_pizza` so submit probabilities
 in the same column order as the sample_submission.csv file.
 """,
-    detect=lambda desc, files: _has_any(
-        desc, ("random acts of pizza", "pizza request", "raop")
-    )
-    or "pizza" in files.lower(),
+    detect=lambda desc, files: (
+        _has_any(desc, ("random acts of pizza", "pizza request", "raop"))
+        or "pizza" in files.lower()
+    ),
 )
 
 
@@ -114,9 +118,7 @@ in the same column order as the sample_submission.csv file.
 # to end against the shipped tar layout. The LEAK_AUDIT_PREAMBLE above is a
 # generic substitute that still catches ID overlaps in any of them.
 
-_REGISTRY: tuple[LeakHint, ...] = (
-    RANDOM_ACTS_OF_PIZZA,
-)
+_REGISTRY: tuple[LeakHint, ...] = (RANDOM_ACTS_OF_PIZZA,)
 
 
 def match_leak(description: str, file_listing: str) -> LeakHint | None:
@@ -131,9 +133,9 @@ def match_leak(description: str, file_listing: str) -> LeakHint | None:
         try:
             if entry.detect(description, file_listing):
                 return entry
-        except Exception:
+        except Exception as exc:
             # A malformed detector must never bring the pipeline down.
-            continue
+            logger.warning("Leak detector %s failed: %s", entry.name, exc)
     return None
 
 

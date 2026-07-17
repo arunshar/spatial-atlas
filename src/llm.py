@@ -63,7 +63,13 @@ class LLMClient:
 
         try:
             response = await litellm.acompletion(**kwargs)
-            self.cost_tracker.track(response)
+            self.cost_tracker.track(
+                response,
+                role=model_tier,
+                model_tier=model_tier,
+                call_kind="generate",
+                configured_max_tokens=max_tokens,
+            )
             content = response.choices[0].message.content or ""
             logger.debug(f"LLM [{model_tier}] generated {len(content)} chars")
             return content
@@ -106,7 +112,13 @@ class LLMClient:
             }
             self._apply_chat_template_options(kwargs)
             response = await litellm.acompletion(**kwargs)
-            self.cost_tracker.track(response)
+            self.cost_tracker.track(
+                response,
+                role=model_tier,
+                model_tier=model_tier,
+                call_kind="vision_analyze",
+                configured_max_tokens=max_tokens,
+            )
             content = response.choices[0].message.content or ""
             logger.debug(f"Vision analysis generated {len(content)} chars")
             return content
@@ -138,7 +150,13 @@ class LLMClient:
 
         try:
             response = await litellm.acompletion(**kwargs)
-            self.cost_tracker.track(response)
+            self.cost_tracker.track(
+                response,
+                role=model_tier,
+                model_tier=model_tier,
+                call_kind="generate_with_messages",
+                configured_max_tokens=max_tokens,
+            )
             return response.choices[0].message.content or ""
         except Exception as e:
             logger.error(f"LLM generation failed: {e}")

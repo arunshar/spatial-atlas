@@ -575,6 +575,54 @@ def _usage_delta(
     return {field: after.get(field, 0) - before.get(field, 0) for field in _USAGE_FIELDS}
 
 
+def _llm_call_telemetry_cursor(llm: Any) -> int | None:
+    tracker = getattr(llm, "cost_tracker", None)
+    cursor_method = getattr(tracker, "telemetry_cursor", None)
+    records_method = getattr(tracker, "telemetry_since", None)
+    if cursor_method is None and records_method is None:
+        return None
+    if not callable(cursor_method) or not callable(records_method):
+        raise TypeError("cost tracker must expose both telemetry_cursor and telemetry_since")
+    cursor = cursor_method()
+    if isinstance(cursor, bool) or not isinstance(cursor, int) or cursor < 0:
+        raise ValueError("cost tracker returned an invalid telemetry cursor")
+    return cursor
+
+
+def _llm_call_telemetry_delta(llm: Any, cursor: int | None) -> list[dict[str, Any]] | None:
+    if cursor is None:
+        return None
+    tracker = getattr(llm, "cost_tracker", None)
+    records_method = getattr(tracker, "telemetry_since", None)
+    if not callable(records_method):
+        raise TypeError("cost tracker telemetry_since is unavailable")
+    records = records_method(cursor)
+    if not isinstance(records, list) or any(not isinstance(record, Mapping) for record in records):
+        raise TypeError("cost tracker telemetry_since must return a list of mappings")
+    return [dict(record) for record in records]
+
+
+def _sample_observability(
+    llm: Any,
+    before_usage: Mapping[str, int | float] | None,
+    telemetry_cursor: int | None,
+) -> tuple[dict[str, int | float] | None, list[dict[str, Any]] | None]:
+    usage = _usage_delta(before_usage, _usage_snapshot(llm))
+    telemetry = _llm_call_telemetry_delta(llm, telemetry_cursor)
+    if telemetry is not None:
+        if usage is None:
+            raise ValueError("LLM call telemetry requires aggregate usage statistics")
+        num_calls = usage.get("num_calls")
+        if isinstance(num_calls, bool) or not isinstance(num_calls, int) or num_calls < 0:
+            raise ValueError("aggregate usage num_calls must be a nonnegative integer")
+        if len(telemetry) != num_calls:
+            raise ValueError(
+                "LLM call telemetry count does not match usage num_calls: "
+                f"{len(telemetry)} != {num_calls}"
+            )
+    return usage, telemetry
+
+
 def _infer_output_format(sample: Any) -> str:
     explicit = getattr(sample, "output_format", None)
     if explicit:
@@ -642,6 +690,7 @@ async def _run_sample(
 ) -> dict[str, Any]:
     start = time.perf_counter()
     before_usage = _usage_snapshot(llm)
+    telemetry_cursor = _llm_call_telemetry_cursor(llm)
     image_path: Path | None = None
     source_image_path: Path | None = None
     input_image_sha256: str | None = None
@@ -741,6 +790,11 @@ async def _run_sample(
         error = f"{type(exc).__name__}: {exc}"
         metric_evidence = None
 
+    usage_delta, llm_call_telemetry = _sample_observability(
+        llm,
+        before_usage,
+        telemetry_cursor,
+    )
     used_engine = getattr(handler, "last_fieldwork_engine", None)
     if used_engine is None and error is None:
         used_engine = engine
@@ -786,7 +840,8 @@ async def _run_sample(
             "sample_id": getattr(sample, "sample_id", None),
             "prediction_text": prediction_text,
             **dict(prescore_metadata),
-            "usage": _usage_delta(before_usage, _usage_snapshot(llm)),
+            "usage": usage_delta,
+            "llm_call_telemetry": llm_call_telemetry,
             "latency_seconds": round(time.perf_counter() - start, 6),
             "engine": engine,
             "requested_engine": engine,
@@ -813,7 +868,8 @@ async def _run_sample(
         "answer": answer,
         "gt": getattr(sample, "answer", None),
         "score": score,
-        "usage": _usage_delta(before_usage, _usage_snapshot(llm)),
+        "usage": usage_delta,
+        "llm_call_telemetry": llm_call_telemetry,
         "latency_seconds": round(time.perf_counter() - start, 6),
         "engine": engine,
         "requested_engine": engine,

@@ -1,5 +1,5 @@
 """
-Spatial Atlas — Local Object Detection Preprocessing
+Spatial Atlas: local object detection preprocessing
 
 Uses Florence-2 (or falls back to a simple prompt-based approach) to extract
 structured object counts and bounding boxes BEFORE sending to the LLM.
@@ -8,16 +8,17 @@ This addresses a known VLM weakness: large language models are notoriously
 bad at precise counting and spatial measurement. By running a dedicated
 detection model first, we feed deterministic structured data to the reasoner.
 
-The detector is optional — if the model can't be loaded (no GPU, no deps),
+The detector is optional. If the model cannot be loaded (no GPU or dependencies),
 the pipeline falls back gracefully to pure VLM analysis.
 """
 
 import io
-import json
+import importlib.util
 import logging
 from dataclasses import dataclass, field
 
 logger = logging.getLogger("spatial-atlas.fieldwork.detector")
+
 
 # Detection results
 @dataclass
@@ -26,6 +27,7 @@ class DetectedObject:
     confidence: float
     bbox: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)  # x1, y1, x2, y2 normalized
     area_fraction: float = 0.0  # fraction of image area
+
 
 @dataclass
 class DetectionResult:
@@ -65,9 +67,9 @@ class LocalDetector:
     Local object detection using Florence-2 or fallback approaches.
 
     Priority:
-    1. Florence-2 (if transformers + torch available) — best quality
-    2. Structured VLM prompt (if only LLM available) — good quality
-    3. Skip (return empty) — graceful fallback
+    1. Florence-2 (if transformers and torch are available), best quality
+    2. Structured VLM prompt (if only LLM is available), good quality
+    3. Skip (return empty), graceful fallback
     """
 
     def __init__(self):
@@ -81,12 +83,10 @@ class LocalDetector:
         if self._available is not None:
             return self._available
 
-        try:
-            import torch
-            from transformers import AutoModelForCausalLM, AutoProcessor
+        if all(importlib.util.find_spec(name) is not None for name in ("torch", "transformers")):
             self._available = True
             logger.info("Florence-2 dependencies available")
-        except ImportError:
+        else:
             self._available = False
             logger.info("Florence-2 not available (no torch/transformers), using VLM fallback")
 
@@ -105,12 +105,19 @@ class LocalDetector:
             from transformers import AutoModelForCausalLM, AutoProcessor
 
             model_id = "microsoft/Florence-2-base"
+            model_revision = "5ca5edf5bd017b9919c05d08aebef5e4c7ac3bac"
             self._device = "cuda" if torch.cuda.is_available() else "cpu"
 
             logger.info(f"Loading Florence-2 on {self._device}...")
-            self._processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
+            self._processor = AutoProcessor.from_pretrained(
+                model_id,
+                revision=model_revision,
+                trust_remote_code=True,
+            )
             self._model = AutoModelForCausalLM.from_pretrained(
-                model_id, trust_remote_code=True
+                model_id,
+                revision=model_revision,
+                trust_remote_code=True,
             ).to(self._device)
             self._model.eval()
             logger.info("Florence-2 loaded successfully")
@@ -139,7 +146,6 @@ class LocalDetector:
 
     async def _detect_florence(self, image_bytes: bytes) -> DetectionResult:
         """Run Florence-2 detection pipeline."""
-        import torch
         from PIL import Image
 
         img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
@@ -184,10 +190,7 @@ class LocalDetector:
         }
 
         for ppe_item, keywords in ppe_keywords.items():
-            found = any(
-                any(kw in obj.label for kw in keywords)
-                for obj in result.objects
-            )
+            found = any(any(kw in obj.label for kw in keywords) for obj in result.objects)
             result.ppe_detected[ppe_item] = found
 
         logger.info(
@@ -221,6 +224,7 @@ class LocalDetector:
 
 # Singleton detector instance
 _detector: LocalDetector | None = None
+
 
 def get_detector() -> LocalDetector:
     """Get or create the singleton detector."""

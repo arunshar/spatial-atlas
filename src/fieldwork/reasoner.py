@@ -1,5 +1,5 @@
 """
-Spatial Atlas — FieldWork Reasoning Engine
+Spatial Atlas: FieldWork Reasoning Engine
 
 Combines spatial scene analysis, file evidence, and entropy-guided
 reasoning to produce accurate answers for FieldWorkArena tasks.
@@ -26,7 +26,7 @@ Key principles:
 - Match the expected output format exactly
 - If the expected output is JSON, respond with ONLY valid JSON
 - If you cannot determine something from the evidence, say "N/A"
-- Be concise — do not add unnecessary explanation unless the format requires it"""
+- Be concise; do not add unnecessary explanation unless the format requires it"""
 
 
 class FieldWorkReasoner:
@@ -92,7 +92,7 @@ Answer the question based on the evidence above.
             max_tokens=4096,
         )
 
-        # Entropy-guided confidence check — refine if low confidence
+        # Entropy-guided confidence check: refine if low confidence
         if self.config.max_reflection_rounds > 0:
             confidence = await self.entropy.estimate_confidence(
                 answer=answer,
@@ -102,7 +102,7 @@ Answer the question based on the evidence above.
             logger.info(f"Answer confidence: {confidence:.2f}")
 
             if confidence < 0.6:
-                logger.info("Low confidence — reflecting and refining answer")
+                logger.info("Low confidence: reflecting and refining answer")
                 answer = await self._refine_answer(
                     query, answer, evidence[:6000], spatial_section, output_format
                 )

@@ -1,11 +1,13 @@
 """
-Spatial Atlas — Spatial-Aware Research Agent (A2A Server)
+Spatial Atlas: spatial-aware research agent (A2A server)
 
 Compute-grounded reasoning agent for AgentX-AgentBeats Phase 2 Sprint 2.
 Handles FieldWorkArena (multimodal spatial QA) and MLE-Bench (ML engineering).
 """
 
 import argparse
+import asyncio
+import hmac
 import logging
 import os
 
@@ -20,7 +22,7 @@ from a2a.types import (
 )
 from dotenv import load_dotenv
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
+from starlette.responses import HTMLResponse, PlainTextResponse
 from starlette.routing import Route
 
 from config import Config
@@ -33,6 +35,177 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger("spatial-atlas")
+
+
+class RequestSizeLimitMiddleware:
+    """Validate and buffer bounded requests before A2A parsing starts."""
+
+    def __init__(self, app, max_bytes: int):
+        if max_bytes <= 0:
+            raise ValueError("max_bytes must be positive")
+        self.app = app
+        self.max_bytes = max_bytes
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+
+        headers = {key.lower(): value for key, value in scope.get("headers", [])}
+        content_length = headers.get(b"content-length")
+        if content_length is not None:
+            try:
+                declared = int(content_length)
+            except ValueError:
+                response = PlainTextResponse("Invalid Content-Length", status_code=400)
+                await response(scope, receive, send)
+                return
+            if declared > self.max_bytes:
+                response = PlainTextResponse("Request body too large", status_code=413)
+                await response(scope, receive, send)
+                return
+
+        received = 0
+        chunks: list[bytes] = []
+        while True:
+            message = await receive()
+            if message.get("type") == "http.disconnect":
+                return
+            if message.get("type") != "http.request":
+                continue
+            body = message.get("body", b"")
+            received += len(body)
+            if received > self.max_bytes:
+                response = PlainTextResponse("Request body too large", status_code=413)
+                await response(scope, receive, send)
+                return
+            chunks.append(body)
+            if not message.get("more_body", False):
+                break
+
+        payload = b"".join(chunks)
+        replayed = False
+
+        async def replay_receive():
+            nonlocal replayed
+            if not replayed:
+                replayed = True
+                return {"type": "http.request", "body": payload, "more_body": False}
+            return await receive()
+
+        await self.app(scope, replay_receive, send)
+
+
+class BearerAuthMiddleware:
+    """Require a configured bearer token for non-read-only public requests."""
+
+    def __init__(self, app, token: str | None):
+        normalized = (token or "").strip()
+        if normalized and len(normalized) < 32:
+            raise ValueError("ATLAS_BEARER_TOKEN must contain at least 32 characters")
+        self.app = app
+        self.token = normalized
+
+    async def __call__(self, scope, receive, send):
+        if (
+            self.token
+            and scope.get("type") == "http"
+            and scope.get("method", "GET").upper() not in {"GET", "HEAD", "OPTIONS"}
+        ):
+            headers = {key.lower(): value for key, value in scope.get("headers", [])}
+            supplied = headers.get(b"authorization", b"").decode("utf-8", errors="ignore")
+            if not hmac.compare_digest(supplied, f"Bearer {self.token}"):
+                response = PlainTextResponse("Unauthorized", status_code=401)
+                await response(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
+
+
+class ConcurrencyLimitMiddleware:
+    """Reject excess concurrent requests instead of building an unbounded queue."""
+
+    def __init__(self, app, maximum: int):
+        if maximum <= 0:
+            raise ValueError("maximum must be positive")
+        self.app = app
+        self.maximum = maximum
+        self._active = 0
+        self._lock = asyncio.Lock()
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+        async with self._lock:
+            if self._active >= self.maximum:
+                response = PlainTextResponse("Server is busy", status_code=503)
+                await response(scope, receive, send)
+                return
+            self._active += 1
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            async with self._lock:
+                self._active -= 1
+
+
+def _request_limit_bytes() -> int:
+    """Read the public HTTP body limit from the environment."""
+    raw = os.environ.get("ATLAS_MAX_REQUEST_BYTES", str(64 * 1024 * 1024))
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ValueError("ATLAS_MAX_REQUEST_BYTES must be an integer") from exc
+    if value <= 0:
+        raise ValueError("ATLAS_MAX_REQUEST_BYTES must be positive")
+    return value
+
+
+def _positive_int_env(name: str, default: int) -> int:
+    raw = os.environ.get(name, str(default))
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be an integer") from exc
+    if value <= 0:
+        raise ValueError(f"{name} must be positive")
+    return value
+
+
+def _env_enabled(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _validate_execution_security(bearer_token: str) -> None:
+    if _env_enabled("ATLAS_ENABLE_MLEBENCH_CODE_EXECUTION") and (
+        not _env_enabled("ATLAS_TRUSTED_ISOLATED_WORKER") or not bearer_token
+    ):
+        raise RuntimeError(
+            "Enabled MLE code execution requires isolated-worker attestation and ATLAS_BEARER_TOKEN"
+        )
+
+
+def _validate_public_binding(host: str, bearer_token: str) -> None:
+    loopback_hosts = {"127.0.0.1", "::1", "localhost"}
+    if (
+        host not in loopback_hosts
+        and not bearer_token
+        and not _env_enabled("ATLAS_ALLOW_UNAUTHENTICATED_PUBLIC")
+    ):
+        raise RuntimeError(
+            "A non-loopback server requires ATLAS_BEARER_TOKEN or the explicit "
+            "ATLAS_ALLOW_UNAUTHENTICATED_PUBLIC=true test-only override"
+        )
+
+
+def _build_protected_app(app, bearer_token: str):
+    """Apply admission control before authentication and bounded body buffering."""
+    size_limited_app = RequestSizeLimitMiddleware(app, _request_limit_bytes())
+    authenticated_app = BearerAuthMiddleware(size_limited_app, bearer_token)
+    return ConcurrencyLimitMiddleware(
+        authenticated_app,
+        _positive_int_env("ATLAS_MAX_CONCURRENT_REQUESTS", 4),
+    )
 
 
 def _resolve_public_url(card_url_arg: str | None, host: str, port: int) -> str:
@@ -72,6 +245,10 @@ def main():
     parser.add_argument("--card-url", type=str, help="URL to advertise in the agent card")
     args = parser.parse_args()
 
+    bearer_token = os.environ.get("ATLAS_BEARER_TOKEN", "").strip()
+    _validate_execution_security(bearer_token)
+    _validate_public_binding(args.host, bearer_token)
+
     public_url = _resolve_public_url(args.card_url, args.host, args.port)
 
     # Validate + log the resolved model tier map BEFORE any request can
@@ -109,9 +286,9 @@ def main():
         name="Spatial Atlas",
         description=(
             "Spatial-aware research agent built on compute-grounded reasoning (CGR). "
-            "Deterministic spatial scene graphs replace VLM hallucination for field work "
-            "analysis; entropy-guided model routing and score-driven refinement drive "
-            "ML competition solving. A2A-compliant for AgentBeats Phase 2 Sprint 2."
+            "Explicit spatial representations expose computed facts for field work "
+            "analysis. The ML competition code-execution path is disabled by default "
+            "until deployed in an isolated worker."
         ),
         url=public_url,
         version="1.0.0",
@@ -128,8 +305,7 @@ def main():
 
     async def landing_page(request: Request) -> HTMLResponse:
         skills_html = "".join(
-            f"<li><strong>{s.name}</strong>: {s.description}</li>"
-            for s in skills
+            f"<li><strong>{s.name}</strong>: {s.description}</li>" for s in skills
         )
         html = f"""<!DOCTYPE html>
 <html lang="en"><head>
@@ -235,26 +411,26 @@ def main():
   <div class="card">
     <h3>1. Spatial Scene Graphs</h3>
     <p>Extract entities from vision descriptions, build a queryable graph with typed relations, compute distances and violations <em>deterministically</em>, then feed computed facts to the LLM.</p>
-    <p><strong>+21-24 pts</strong> over pure VLM baselines.</p>
+    <p><strong>Status:</strong> implemented and under artifact-backed evaluation.</p>
   </div>
   <div class="card">
     <h3>2. Entropy-Guided Reasoning</h3>
     <p>Information-theoretic framework estimating answer entropy at each step. Triggers reflection when confidence is low, routes to stronger models only when needed.</p>
-    <p><strong>+7-8 pts</strong> accuracy improvement.</p>
+    <p><strong>Status:</strong> implemented; accuracy and cost effects are not yet claimed.</p>
   </div>
   <div class="card">
     <h3>3. Self-Healing ML Pipeline</h3>
     <p>Strategy-aware code generation with automatic error detection, diagnosis, and repair. Covers tabular, NLP, vision, time series, and general strategies.</p>
-    <p><strong>82%</strong> valid submission rate across 75 competitions.</p>
+    <p><strong>Safety:</strong> generated-code execution is disabled by default and requires an isolated worker.</p>
   </div>
   <div class="card">
     <h3>4. Score-Driven Refinement</h3>
-    <p>Parses validation scores from pipeline output, uses a cross-provider model to propose targeted improvements, keeps whichever submission scores higher.</p>
-    <p><strong>35-40%</strong> improvement rate on eligible tasks.</p>
+    <p>Parses validation scores from pipeline output, uses the configured strong model to propose targeted improvements, and keeps whichever submission scores higher.</p>
+    <p><strong>Status:</strong> implemented; no improvement rate is claimed without sealed artifacts.</p>
   </div>
   <div class="card">
     <h3>5. Leak Audit Registry</h3>
-    <p>Prompt-based exploit framework detecting train/test leakage via ID overlap, row fingerprinting, temporal ordering, and byte hashing at codegen time.</p>
+    <p>Adds code-generation guidance for checking four leakage patterns: ID overlap, row fingerprinting, temporal ordering, and byte hashing. It is prompt guidance, not a standalone detector.</p>
   </div>
   <div class="card">
     <h3>6. 3-Tier Model Routing</h3>
@@ -262,40 +438,17 @@ def main():
   </div>
 </div>
 
-<h2>Evaluation Results</h2>
-<h3>FieldWorkArena Ablation</h3>
-<table>
-  <tr><th>Configuration</th><th>Factory</th><th>Warehouse</th><th>Retail</th></tr>
-  <tr><td><strong>Full System</strong> (SSG + EG + F2)</td><td><strong>0.72</strong></td><td><strong>0.68</strong></td><td><strong>0.74</strong></td></tr>
-  <tr><td>Without Spatial Scene Graph</td><td>0.51</td><td>0.44</td><td>0.55</td></tr>
-  <tr><td>Without Entropy-Guided</td><td>0.65</td><td>0.60</td><td>0.67</td></tr>
-  <tr><td>Without Florence-2</td><td>0.63</td><td>0.58</td><td>0.66</td></tr>
-  <tr><td>VLM Baseline (GPT-4V)</td><td>0.48</td><td>0.41</td><td>0.52</td></tr>
-</table>
-
-<h3>MLE-Bench Results</h3>
-<table>
-  <tr><th>Category</th><th>Valid Submission</th><th>Medal Rate</th><th>n</th></tr>
-  <tr><td>Tabular</td><td>0.91</td><td>0.42</td><td>32</td></tr>
-  <tr><td>NLP</td><td>0.78</td><td>0.28</td><td>18</td></tr>
-  <tr><td>Vision</td><td>0.65</td><td>0.15</td><td>12</td></tr>
-  <tr><td>Time Series</td><td>0.85</td><td>0.35</td><td>8</td></tr>
-  <tr><td>Other</td><td>0.72</td><td>0.20</td><td>5</td></tr>
-  <tr style="font-weight:600"><td>Overall</td><td>0.82</td><td>0.32</td><td>75</td></tr>
-</table>
-
-<h3>Cost Analysis</h3>
-<table>
-  <tr><th>Domain</th><th>Avg. Tokens</th><th>Avg. Cost</th><th>Avg. Latency</th></tr>
-  <tr><td>FieldWorkArena</td><td>45,200</td><td>$0.18</td><td>12s</td></tr>
-  <tr><td>MLE-Bench (no refinement)</td><td>92,400</td><td>$0.52</td><td>180s</td></tr>
-  <tr><td>MLE-Bench (with refinement)</td><td>128,600</td><td>$1.85</td><td>340s</td></tr>
-</table>
+<h2>Evaluation Status</h2>
+<div class="card">
+  <p><strong>FieldWorkArena:</strong> no result is reported because the benchmark data were gated and inaccessible.</p>
+  <p><strong>QSpatial++ Gap-97:</strong> the frozen artifact-backed comparison is in progress. Results will be published only after five label-free journals are sealed and scored offline.</p>
+  <p><strong>MLE-Bench:</strong> no aggregate performance, cost, or latency result is reported without a sealed end-to-end run artifact.</p>
+</div>
 
 <h2>Endpoints</h2>
 <ul class="endpoint-list">
-  <li><strong>GET</strong> <a href="/.well-known/agent-card.json"><code>/.well-known/agent-card.json</code></a> &mdash; Agent card (identity, skills, capabilities)</li>
-  <li><strong>POST</strong> <code>/</code> &mdash; A2A JSON-RPC task submission</li>
+  <li><strong>GET</strong> <a href="/.well-known/agent-card.json"><code>/.well-known/agent-card.json</code></a>: Agent card (identity, skills, capabilities)</li>
+  <li><strong>POST</strong> <code>/</code>: A2A JSON-RPC task submission</li>
 </ul>
 
 <h2>Quick Start</h2>
@@ -332,9 +485,10 @@ curl http://localhost:9019/.well-known/agent-card.json</code></pre>
 
     starlette_app = a2a_app.build()
     starlette_app.routes.insert(0, Route("/", landing_page, methods=["GET"]))
+    protected_app = _build_protected_app(starlette_app, bearer_token)
 
     uvicorn.run(
-        starlette_app,
+        protected_app,
         host=args.host,
         port=args.port,
         timeout_keep_alive=300,

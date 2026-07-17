@@ -4,13 +4,17 @@ This branch contains the reviewed implementation for the SpatialClaw to Spatial 
 evaluation. It is intended to let another local coding agent continue the project without rediscovering
 the code and safety boundaries.
 
+For the current 2026-07-17 recovery status and complete sanitized job arc, read
+`FABLE_HANDOFF.md` first.
+
 ## Read order
 
-1. Read this file.
-2. If this checkout has the ignored local `sessions/` directory, read
+1. Read `FABLE_HANDOFF.md`.
+2. Read this file.
+3. If this checkout has the ignored local `sessions/` directory, read
    `sessions/CODEX_CHECKPOINT_2026-07-12.md`, `sessions/LEDGER.md`, and
    `sessions/CODEX_HANDOFF.md` in full. Those files own the live MSI job state and detailed run history.
-3. Inspect `git status --short` before editing. Preserve unrelated changes.
+4. Inspect `git status --short` before editing. Preserve unrelated changes.
 
 The `sessions/` directory is deliberately not in GitHub. Do not force-add it or recreate its operational
 details in a public file. If the local checkpoint is unavailable, do not assume the live run state. Report
@@ -20,6 +24,10 @@ that missing context and restrict work to local review and tests until the owner
 
 - P0 to P2 are complete.
 - P3 is in progress and is governed by the private checkpoint and ledger.
+- Task 1 is currently blocked at the compute-only CUDA startup gate. Diagnostic-only job
+  `13434346` ended with a valid journal at `S07_CUDA_GUARD_FAIL`; S05 environment and S06 source
+  passed.
+- There are no live MSI jobs, no endpoint, and no replacement smoke from this recovery window.
 - P4 and P5 have not started and must remain after P3.
 - The primary experiment is QSpatial Gap-97: 97 rows, 84 images, 54 clusters.
 - The frozen five-arm order is: Spatial Atlas scenegraph, question-only, correct-image metric,
@@ -61,5 +69,5 @@ not from Slurm completion alone.
 ## Handoff prompt
 
 ```text
-Read CLAUDE_HANDOFF.md first. Then, if present, read sessions/CODEX_CHECKPOINT_2026-07-12.md, sessions/LEDGER.md, and sessions/CODEX_HANDOFF.md in full. Continue the SpatialClaw to Spatial Atlas project strictly in phase order. Obey every hard rule in the private handoff. Preserve the current worktree, never push SpatialClaw or sessions, and do not infer MSI job outcomes. Revalidate live jobs and immutable artifacts before launching anything. P3 must pass its smoke and sequential pilot gates before full QSpatial arms. P4 and P5 remain blocked behind P3. Maintain sessions/LEDGER.md with commands, artifacts, results, and blockers.
+Read FABLE_HANDOFF.md and CLAUDE_HANDOFF.md first. Then, if present, read sessions/CONTEXT_CHECKPOINT.md, sessions/LEDGER.md, and sessions/CODEX_HANDOFF.md in full. Continue the SpatialClaw to Spatial Atlas project strictly in phase order. Obey every hard rule in the private handoff. Preserve the current worktree, never push SpatialClaw or sessions, and do not infer MSI job outcomes. Task 1 is blocked at S07_CUDA_GUARD_FAIL after S05 environment and S06 source passed. Build a fresh compute-only fixed-enum CUDA intervention classifier before any correction. Do not start a service or smoke without explicit authorization. P4 and P5 remain blocked behind P3. Maintain sessions/LEDGER.md with commands, artifacts, results, and blockers.
 ```

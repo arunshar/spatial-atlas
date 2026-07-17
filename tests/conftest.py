@@ -1,5 +1,5 @@
 """
-Spatial Atlas — Test Configuration
+Spatial Atlas: Test Configuration
 
 Shared fixtures for all test modules.
 """

@@ -3,7 +3,7 @@ name = "spatial-atlas"
 version = "1.0.0"
 description = "Spatial-aware research agent built on compute-grounded reasoning (CGR) for AgentX-AgentBeats Phase 2 Sprint 2. Deterministic spatial scene graphs, entropy-guided model routing, and self-healing ML pipelines for field work analysis and Kaggle competition solving."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "a2a-sdk[http-server]>=0.3.20",
     "httpx>=0.28.1",

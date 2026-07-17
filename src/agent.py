@@ -1,5 +1,5 @@
 """
-Spatial Atlas — Core Orchestrator Agent
+Spatial Atlas: core orchestrator agent
 
 THE BRAIN: Receives A2A messages, classifies domain (FieldWorkArena vs MLE-Bench),
 routes to the appropriate handler, and returns formatted artifacts.
@@ -7,7 +7,7 @@ routes to the appropriate handler, and returns formatted artifacts.
 
 import base64
 import logging
-import traceback
+import uuid
 
 from a2a.server.tasks import TaskUpdater
 from a2a.types import (
@@ -19,21 +19,28 @@ from a2a.types import (
     TaskState,
     TextPart,
 )
-from a2a.utils import get_message_text, new_agent_text_message
+from a2a.utils import new_agent_text_message
 
+from budgeted_llm import BudgetedLLMClient
 from config import Config
-from llm import LLMClient
-from cost.tracker import CostTracker
 from fieldwork.handler import FieldWorkHandler
 from mlebench.handler import MLEBenchHandler
 
 logger = logging.getLogger("spatial-atlas.agent")
 
 
+class AgentTaskError(RuntimeError):
+    """Public, sanitized failure raised after server-side diagnostics are recorded."""
+
+    def __init__(self, reference: str):
+        self.reference = reference
+        super().__init__(f"Spatial Atlas could not complete this task. Reference: {reference}")
+
+
 class Agent:
     def __init__(self):
         self.config = Config()
-        self.llm = LLMClient(self.config)
+        self.llm = BudgetedLLMClient(self.config)
         self.cost_tracker = self.llm.cost_tracker
         self.fieldwork = FieldWorkHandler(self.config, self.llm)
         self.mlebench = MLEBenchHandler(self.config, self.llm)
@@ -63,11 +70,18 @@ class Agent:
             logger.info(f"Task completed. {self.cost_tracker.summary()}")
 
         except Exception as e:
-            logger.error(f"Agent error: {traceback.format_exc()}")
+            failure_id = uuid.uuid4().hex[:12]
+            logger.error(
+                "Agent task failed [reference=%s, exception_type=%s]",
+                failure_id,
+                type(e).__name__,
+            )
+            public_message = f"Spatial Atlas could not complete this task. Reference: {failure_id}"
             await updater.add_artifact(
-                parts=[Part(root=TextPart(text=f"Error: {e}"))],
+                parts=[Part(root=TextPart(text=f"Error: {public_message}"))],
                 name="Error",
             )
+            raise AgentTaskError(failure_id) from e
 
     async def _handle_fieldwork(
         self,
@@ -140,6 +154,7 @@ class Agent:
             elif isinstance(root, DataPart):
                 # Inline JSON data
                 import json
+
                 text_parts.append(json.dumps(root.data, indent=2))
             elif isinstance(root, FilePart):
                 file_data = root.file

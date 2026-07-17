@@ -14,6 +14,7 @@ venv/
 .mypy_cache/
 .coverage
 htmlcov/
+junit.xml
 *.log
 .DS_Store
 paper/*.aux
