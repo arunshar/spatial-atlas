@@ -1,0 +1,19 @@
+tests/test_perception.py
+  s_a8bea4e33e13eb::t_278fff3513308e 1104-1192
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "bcdc56976517d056127bcc6e23197478c201414c",
+  "prompts": {},
+  "sessions": {
+    "s_a8bea4e33e13eb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "593d0e42-18b2-4e77-a2a8-2ad47b7cf2c8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
