@@ -1162,9 +1162,7 @@ def _break_symmetric_estimator(scene, evidence):
 
 def _horizontal_relation(scene):
     return next(
-        relation
-        for relation in scene.relations
-        if relation.predicate == "horizontal_surface_gap"
+        relation for relation in scene.relations if relation.predicate == "horizontal_surface_gap"
     )
 
 
