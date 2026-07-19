@@ -1297,6 +1297,7 @@ async def test_label_free_run_never_reads_ground_truth_or_scores_before_sealing(
         {
             "metric_protocol": driver.QSPATIAL_METRIC_PROTOCOL,
             "metric_sample_metadata": sample.prediction_metadata(),
+            "metric_question": "gap question",
         }
     ]
     assert benchmark.single_calls == []

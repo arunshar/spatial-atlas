@@ -238,6 +238,7 @@ async def test_qspatial_metric_uses_frozen_gap_path(monkeypatch):
         _updater(),
         metric_protocol="qspatial-horizontal-gap-v1",
         metric_sample_metadata=metadata,
+        metric_question="distance?",
     )
 
     assert result == "2.0 m"
@@ -272,6 +273,7 @@ async def test_qspatial_expected_invalid_returns_sentinel_without_fallback(monke
         _updater(),
         metric_protocol="qspatial-horizontal-gap-v1",
         metric_sample_metadata={"row_id": 0},
+        metric_question="distance?",
     )
 
     assert result == "measurement unavailable"
@@ -299,7 +301,57 @@ async def test_qspatial_service_error_never_falls_back(monkeypatch):
             _updater(),
             metric_protocol="qspatial-horizontal-gap-v1",
             metric_sample_metadata={"row_id": 0},
+            metric_question="distance?",
         )
 
     h.spatial.build_scene.assert_not_awaited()
     assert h.last_fieldwork_engine == "metric_failed"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("missing_question", [None, "", "   "])
+async def test_qspatial_metric_requires_the_raw_question(monkeypatch, missing_question):
+    """Regression for war story #112: the composed goal must never reach the parser."""
+    h = _handler("metric")
+    import fieldwork.perception as perception
+
+    build = AsyncMock()
+    monkeypatch.setattr(perception, "build_qspatial_gap_scene", build)
+
+    with pytest.raises(RuntimeError, match="raw benchmark question"):
+        await h.handle(
+            "t",
+            [("a.jpg", "image/jpeg", b"x")],
+            _updater(),
+            metric_protocol="qspatial-horizontal-gap-v1",
+            metric_sample_metadata={"row_id": 0},
+            metric_question=missing_question,
+        )
+
+    build.assert_not_awaited()
+    assert h.last_fieldwork_engine == "metric_failed"
+
+
+@pytest.mark.asyncio
+async def test_qspatial_metric_parses_the_raw_question_not_the_goal_query(monkeypatch):
+    """The frozen parser and evidence hashes consume metric_question, not task.query."""
+    h = _handler("metric")
+    import fieldwork.perception as perception
+
+    scene, evidence = _qspatial_scene_and_evidence()
+    build = AsyncMock(return_value=(scene, evidence))
+    monkeypatch.setattr(perception, "build_qspatial_gap_scene", build)
+    raw = "what is the gap between the vase and the lamp?"
+
+    result = await h.handle(
+        "t",
+        [("a.jpg", "image/jpeg", b"x")],
+        _updater(),
+        metric_protocol="qspatial-horizontal-gap-v1",
+        metric_sample_metadata={"row_id": 0},
+        metric_question=raw,
+    )
+
+    assert result == "2.0 m"
+    assert build.await_args.args[0] == raw
+    assert build.await_args.args[0] != "distance?"

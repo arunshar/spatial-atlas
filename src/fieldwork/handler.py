@@ -54,6 +54,7 @@ class FieldWorkHandler:
         metric_regions: list[dict[str, Any]] | None = None,
         metric_protocol: str | None = None,
         metric_sample_metadata: dict[str, Any] | None = None,
+        metric_question: str | None = None,
     ) -> str:
         """
         Process a FieldWorkArena task end-to-end.
@@ -70,6 +71,9 @@ class FieldWorkHandler:
                 horizontal-gap rows use ``qspatial-horizontal-gap-v1``.
             metric_sample_metadata: Optional label-free benchmark metadata covered by
                 the frozen QSpatial manifest.
+            metric_question: Raw benchmark question for the frozen QSpatial grammar.
+                The goal text wraps the question with instruction suffixes, so the
+                frozen parser and evidence hashes must consume this exact string.
 
         Returns:
             Formatted answer string
@@ -130,8 +134,13 @@ class FieldWorkHandler:
                         validate_qspatial_gap_scene,
                     )
 
+                    if not isinstance(metric_question, str) or not metric_question.strip():
+                        raise RuntimeError(
+                            "parse_failed: QSpatial metric mode requires the raw "
+                            "benchmark question, not the composed goal text"
+                        )
                     scene, evidence = await build_qspatial_gap_scene(
-                        task.query,
+                        metric_question,
                         image_bytes,
                         self.config,
                         sample_metadata=metric_sample_metadata,

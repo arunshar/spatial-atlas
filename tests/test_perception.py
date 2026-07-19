@@ -298,6 +298,43 @@ def test_qspatial_parser_rejects_invalid_or_out_of_contract_questions(question, 
         perception.parse_qspatial_gap_question(question, row_id=row_id)
 
 
+def test_frozen_parser_rejects_the_composed_goal_query_but_accepts_the_raw_question():
+    """Regression for the 2026-07-19 metric pilot failure (war story #112).
+
+    eval_bench composes the question plus the benchmark output-format instruction
+    inside the # Question section; GoalParser extracts the whole section as the
+    query. The frozen grammar fullmatch can never accept that composed string, so
+    the metric path must parse the raw benchmark question instead.
+    """
+    import types
+
+    import eval_bench as driver
+    from fieldwork.parser import GoalParser
+
+    raw = "What is the gap between the vase and the lamp?"
+    sample = types.SimpleNamespace(
+        question=raw,
+        choices=None,
+        answer_type="float",
+        question_type="distance",
+    )
+    goal = driver._build_goal(
+        sample,
+        "image.png",
+        r"Return exactly: \scalar{<positive scalar>} \distance_unit{meter}. "
+        "Use one scalar and one distance unit, with no explanation.",
+    )
+    composed_query = GoalParser().parse(goal).query
+    assert composed_query != raw
+    assert raw in composed_query
+    with pytest.raises(RuntimeError, match="outside the frozen QSpatial grammar"):
+        perception.parse_qspatial_gap_question(composed_query)
+    record = perception.parse_qspatial_gap_question(raw)
+    assert record["mode"] == "distinct_pair"
+    assert record["phrase_a"] == "the vase"
+    assert record["phrase_b"] == "the lamp"
+
+
 @pytest.mark.parametrize(
     "mutation",
     ("missing_field", "measurement_family", "slice_hash", "row_id"),

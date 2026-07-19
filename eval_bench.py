@@ -767,6 +767,7 @@ async def _run_sample(
                     {
                         "metric_protocol": QSPATIAL_METRIC_PROTOCOL,
                         "metric_sample_metadata": dict(prescore_metadata),
+                        "metric_question": str(sample.question),
                     }
                 )
                 if image_bytes is None:
