@@ -1101,3 +1101,92 @@ def test_ensure_tools_raises_when_reconstruction_is_unavailable(monkeypatch):
     b = MetricPerceptionBackend(Config())
     with pytest.raises(RuntimeError, match="GPU tool server"):
         b._ensure_tools()
+
+
+def _valid_qspatial_scene_and_evidence(png_bytes):
+    """Build a genuinely valid frozen surface-gap scene to perturb one field at a time."""
+    points, confidence, left, right = _horizontal_gap_geometry()
+    question = (
+        "What is the minimum distance between the coffee grinder and the base of the "
+        "gooseneck kettle in the image?"
+    )
+    parsed = perception.parse_qspatial_gap_question(question, row_id=0)
+    backend = _backend(
+        {
+            "the coffee grinder": FakePerFrameMask(1, masks=left[np.newaxis, np.newaxis]),
+            "the base of the gooseneck kettle": FakePerFrameMask(
+                1, masks=right[np.newaxis, np.newaxis]
+            ),
+        }
+    )
+    backend._recon = FakeReconstructTool(points, confidence)
+    scene, evidence = backend.ground_horizontal_surface_gap(
+        png_bytes, question, parsed, _qspatial_metadata(0)
+    )
+    assert scene is not None
+    perception.validate_qspatial_gap_scene(scene, evidence)
+    return scene, evidence
+
+
+def _drift_entity_provenance(scene, _evidence):
+    entity = next(iter(scene.entities.values()))
+    entity.attributes["source"] = "llm-guess"
+
+
+def _make_gap_nonfinite(scene, _evidence):
+    _horizontal_relation(scene).distance = float("nan")
+
+
+def _push_gap_out_of_range(scene, _evidence):
+    _horizontal_relation(scene).distance = perception.QSPATIAL_MAX_GAP_M + 1.0
+
+
+def _disagree_with_evidence(scene, evidence):
+    evidence["geometry"]["gap_m"] = _horizontal_relation(scene).distance + 0.5
+
+
+def _drop_directed_evidence(_scene, evidence):
+    evidence["geometry"]["directed_q05_m"] = None
+
+
+def _corrupt_voxel_evidence(_scene, evidence):
+    evidence["geometry"]["voxel_keys_sha256"] = ["not-a-sha", "also-not-a-sha"]
+
+
+def _break_symmetric_estimator(scene, evidence):
+    relation = _horizontal_relation(scene)
+    skewed = min(float(value) for value in evidence["geometry"]["directed_q05_m"]) + 0.25
+    relation.distance = skewed
+    evidence["geometry"]["gap_m"] = skewed
+
+
+def _horizontal_relation(scene):
+    return next(
+        relation
+        for relation in scene.relations
+        if relation.predicate == "horizontal_surface_gap"
+    )
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (_drift_entity_provenance, "entity provenance drifted"),
+        (_make_gap_nonfinite, "gap is nonfinite"),
+        (_push_gap_out_of_range, "gap is outside frozen range"),
+        (_disagree_with_evidence, "relation and evidence disagree"),
+        (_drop_directed_evidence, "lacks directed gap evidence"),
+        (_corrupt_voxel_evidence, "lacks deterministic voxel evidence"),
+        (_break_symmetric_estimator, "violates symmetric gap estimator"),
+    ],
+)
+def test_strict_validator_rejects_each_corrupted_geometry_claim(png_bytes, mutate, message):
+    """Each fail-closed guard must reject a scene that is valid except for one field.
+
+    These guards are the last line between a corrupted measurement and a sealed
+    benchmark gate, so every rejection branch carries its own regression.
+    """
+    scene, evidence = _valid_qspatial_scene_and_evidence(png_bytes)
+    mutate(scene, evidence)
+    with pytest.raises(RuntimeError, match=message):
+        perception.validate_qspatial_gap_scene(scene, evidence)
