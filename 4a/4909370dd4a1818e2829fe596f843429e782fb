@@ -1,0 +1,30 @@
+tests/test_perception.py
+  s_a8bea4e33e13eb::t_203d2845b07fd8 301-337
+src/fieldwork/handler.py
+  s_a8bea4e33e13eb::t_2304768cb83cb3 57,74-76
+  s_a8bea4e33e13eb::t_7fa840fb2e15f2 137-141,143
+tests/test_handler_engine.py
+  s_a8bea4e33e13eb::t_969941029ea6a2 276
+  s_a8bea4e33e13eb::t_60a67367b6e736 304,309-357
+  s_a8bea4e33e13eb::t_2e7c40344b4c9d 241
+tests/test_eval_bench.py
+  s_a8bea4e33e13eb::t_dbbcb7c6e2f43a 1300
+eval_bench.py
+  s_a8bea4e33e13eb::t_3d4f48e5698e04 770
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4a4909370dd4a1818e2829fe596f843429e782fb",
+  "prompts": {},
+  "sessions": {
+    "s_a8bea4e33e13eb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "593d0e42-18b2-4e77-a2a8-2ad47b7cf2c8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
