@@ -149,6 +149,58 @@ src/
     └── tracker.py         # Token/cost budget tracking
 ```
 
+## Warm-Launch State Cleanup
+
+The warm launch path (`sessions/fable/work/warm_m5_teardown_r15_launch.sh`) establishes a durable SSH control master to `login.msi.umn.edu` through a hardened, hash-pinned wrapper. It records session state in a one-shot directory, `.warm_m5_teardown_r15_6bd72ee5.state`, whose `markers` journal is the durable record of launch outcome. Because that directory is created exclusively, any prior run that left it behind makes the next launch fail immediately with `M5_TEARDOWN_R15_WARM_CONTROL_R13_FAIL code=identity_consumed`.
+
+`sessions/fable/work/warm_m5_teardown_r15_cleanup.py` removes that stale state so a new warm launch can begin. It is local session tooling (the `sessions/` tree is gitignored, like the rest of the r5-r15 warm-launch teardown files) and does not modify the hash-pinned launcher, wrapper, or outer body, so their SHA256 pins and qualification receipts stay valid.
+
+### Usage
+
+Clean stale state only:
+```bash
+python3 sessions/fable/work/warm_m5_teardown_r15_cleanup.py
+```
+Clean stale state, then start a new warm launch in one step:
+```bash
+sessions/fable/work/warm_m5_teardown_r15_relaunch.sh
+```
+
+The relaunch wrapper runs the cleanup first, prints its result, and `exec`s the existing launcher only on `PASS`. On any cleanup refusal it exits 1 without launching.
+
+### Output
+
+On success:
+```
+M5_TEARDOWN_R15_WARM_CLEANUP_PASS state=<cleaned|absent> control=<cleaned|absent>
+```
+On any refusal or error:
+```
+M5_TEARDOWN_R15_WARM_CLEANUP_FAIL code=<reason>
+```
+
+### Safety guarantees
+
+The cleanup removes state only when it can prove the prior session is no longer live.
+
+- Removes state when the `markers` journal is a terminal `FAIL` line, or a `READY` line followed by a terminal `STOP` line (a gracefully stopped session).
+- Refuses a bare `READY` journal with `code=state_live`: a running warm session. Use `warm_m5_teardown_r15_stop_request.py` or `ssh -O exit` to stop it first.
+- Refuses an empty journal with `code=state_in_progress`: a launch that has not yet reached a terminal state.
+- Refuses unrecognized or oversized journals with `code=state_invalid`.
+- Refuses a state directory that is not a real 0700 directory owned by the expected user/device with `code=state_shape`, and a parent that does not match the expected identity with `code=state_parent`. These checks open from the filesystem root with `O_NOFOLLOW|O_DIRECTORY|O_CLOEXEC` and re-verify identity after each read, so symlinks, fifos, TOCTOU swaps, and path-replacement tricks are rejected.
+- Refuses a state directory that still contains a `stop.request` file alongside a terminal journal with `code=state_in_progress`, so a stop in flight is not disturbed.
+- Removes an empty leftover SSH control directory (`~/.ssh/spatial-atlas-r15-6bd72ee5`) but refuses with `code=control_live` if a `ctl` socket is still present, so a live control master is never deleted.
+
+Because the cleanup never removes live or in-progress state, the wrapper's `identity_consumed` concurrency guard for concurrent launches stays intact. After a successful cleanup, re-running the cleanup is idempotent and reports `state=absent`.
+
+### Tests
+
+```bash
+uv run pytest -q sessions/fable/work/test_warm_m5_teardown_r15_cleanup.py
+```
+
+The suite covers terminal-fail, `master_exit`-fail, READY+STOP, bare-READY, empty, invalid, non-terminal suffix, unexpected entries, absent state, stop-request mid-flight, non-directory shape, parent mismatch, control empty/cleaned, control-with-entry refused, and the relaunch wrapper's pass and refusal paths.
+
 ## License
 
 MIT
