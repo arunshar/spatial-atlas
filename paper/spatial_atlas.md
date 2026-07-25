@@ -386,7 +386,7 @@ Spatial Atlas is open-sourced at https://github.com/arunshar/spatial-atlas to fa
 4. Chen, B., Xu, Z., Kirmani, S., et al. SpatialVLM: Endowing vision-language models with spatial reasoning capabilities. CVPR, 2024.
 5. Erickson, N., Mueller, J., Shirkov, A., et al. AutoGluon-Tabular: Robust and accurate AutoML for structured data. arXiv:2003.06505, 2020.
 6. Feurer, M., Klein, A., Eggensperger, K., et al. Auto-sklearn 2.0: Hands-free AutoML via meta-learning. JMLR, 22(235):1--61, 2019.
-7. FieldWorkArena Team. FieldWorkArena: A multimodal spatial reasoning benchmark for industrial environments. Technical report, 2025.
+7. J. Takahashi, A. Moteki, A. Uchida, S. Masui, F. Yang, K. Uchino, Y. Song, Y. Bisk, G. Neubig, I. Kusajima, Y. Watanabe, H. Ishida, K. Nakagawa, and S. Jiang. FieldWorkArena: Agentic AI benchmark for real field work tasks. arXiv preprint arXiv:2505.19662, 2025.
 8. Google. Agent-to-Agent (A2A) protocol specification. Online documentation, 2024.
 9. Hildebrandt, M., Li, H., Koner, R., et al. Scene graph reasoning for visual question answering. arXiv:2007.01072, 2020.
 10. Hollmann, N., Mueller, S., & Hutter, F. Large language models for automated machine learning. arXiv:2402.00878, 2024.
