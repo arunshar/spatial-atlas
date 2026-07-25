@@ -135,7 +135,9 @@ def match_leak(description: str, file_listing: str) -> LeakHint | None:
                 return entry
         except Exception as exc:
             # A malformed detector must never bring the pipeline down.
-            logger.warning("Leak detector %s failed: %s", entry.name, exc)
+            # LeakHint has no `name` field; using one here raised AttributeError
+            # inside this very handler, defeating its purpose.
+            logger.warning("Leak detector %s failed: %s", entry.slug, exc)
     return None
 
 
