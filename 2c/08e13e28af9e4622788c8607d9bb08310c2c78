@@ -1,0 +1,30 @@
+src/server.py
+  s_9ecf78dacc63d1::t_805f1446b6cde9 139-147
+src/fieldwork/perception.py
+  s_9ecf78dacc63d1::t_481d2fefa37cd8 29
+  s_9ecf78dacc63d1::t_d7842cfee2d61f 754-766
+.well-known/agent-card.json
+  s_9ecf78dacc63d1::t_95bc56c361cb25 5-11,18-20,23-29,33-35,38-43
+tests/test_demo_hardening.py
+  s_9ecf78dacc63d1::t_f6514f004de5fc 1-31,36,41-108
+  s_9ecf78dacc63d1::t_4e27bd307007bc 32-35,37-40
+deploy_to_hf.sh
+  s_9ecf78dacc63d1::t_c110aec93513e8 22-29,34,37-38,41-42,48-55
+  s_9ecf78dacc63d1::t_0bebd35c4170d7 56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2c08e13e28af9e4622788c8607d9bb08310c2c78",
+  "prompts": {},
+  "sessions": {
+    "s_9ecf78dacc63d1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "555a542c-3ba5-4d32-b7d8-3d3ab62638f3",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
