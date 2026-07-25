@@ -390,7 +390,7 @@ def main():
 +------+------+        +-------+------+
        |                       |
 +------v------+        +-------v------+
-| Spatial     |        | Self-Healing |
+| Spatial     |        | Fail-Closed  |
 | Scene Graph |        | ML Pipeline  |
 | Engine      |        |              |
 +------+------+        +-------+------+
@@ -410,18 +410,18 @@ def main():
 <div class="grid">
   <div class="card">
     <h3>1. Spatial Scene Graphs</h3>
-    <p>Extract entities from vision descriptions, build a queryable graph with typed relations, compute distances and violations <em>deterministically</em>, then feed computed facts to the LLM.</p>
-    <p><strong>Status:</strong> implemented and under artifact-backed evaluation.</p>
+    <p>Extract entities from vision descriptions, build a queryable graph with typed relations, then compute distances and constraint violations by arithmetic rather than by generation, and feed the computed facts to the LLM.</p>
+    <p><strong>Status:</strong> implemented and under artifact-backed evaluation. In this path the positions are model-estimated, so the arithmetic is exact over estimated coordinates.</p>
   </div>
   <div class="card">
     <h3>2. Entropy-Guided Reasoning</h3>
-    <p>Information-theoretic framework estimating answer entropy at each step. Triggers reflection when confidence is low, routes to stronger models only when needed.</p>
-    <p><strong>Status:</strong> implemented; accuracy and cost effects are not yet claimed.</p>
+    <p>Reflection is gated on a confidence score attached to each candidate answer, so a second pass is spent only where the first answer looks weak.</p>
+    <p><strong>Status:</strong> implemented as a prompting heuristic. The score is self-reported and has not been demonstrated to be calibrated. Confidence-based model routing is designed but not yet wired, and accuracy and cost effects are not yet claimed.</p>
   </div>
   <div class="card">
-    <h3>3. Self-Healing ML Pipeline</h3>
-    <p>Strategy-aware code generation with automatic error detection, diagnosis, and repair. Covers tabular, NLP, vision, time series, and general strategies.</p>
-    <p><strong>Safety:</strong> generated-code execution is disabled by default and requires an isolated worker.</p>
+    <h3>3. Fail-Closed ML Pipeline</h3>
+    <p>Strategy-aware code generation with error detection, diagnosis, and a bounded number of repair attempts. Covers tabular, NLP, vision, time series, and general strategies.</p>
+    <p><strong>Safety:</strong> generated-code execution is disabled by default and requires execution opt-in and isolated-worker attestation. These controls are defense in depth, not a complete security sandbox.</p>
   </div>
   <div class="card">
     <h3>4. Score-Driven Refinement</h3>
