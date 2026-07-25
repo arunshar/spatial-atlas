@@ -26,6 +26,7 @@ import itertools
 import json
 import logging
 import math
+import os
 import re
 import unicodedata
 from typing import Any, List
@@ -750,6 +751,19 @@ class MetricPerceptionBackend:
     def _ensure_tools(self):
         if self._recon is not None:
             return
+        # Fail fast instead of hanging for four hours.
+        #
+        # SpatialClaw's tool discovery has two branches. If SPATIALCLAW_GPU_SERVER_URL
+        # is set, an unreachable server raises within about five seconds. If it is
+        # UNSET and the registry file is empty, it instead polls 1440 times at ten
+        # second intervals before giving up, and `is_available` calls straight into
+        # that loop. So a caller with the package installed but no server, which is
+        # exactly a laptop or a demo box, blocks silently for four hours rather than
+        # erroring. Pointing the variable at a closed loopback port forces the fast
+        # branch. Callers that set it properly, such as the MSI and Lambda harnesses
+        # via qspatial_pilot_common.sh, are unaffected because this never overwrites.
+        os.environ.setdefault("SPATIALCLAW_GPU_SERVER_URL", "http://127.0.0.1:1")
+
         # Imported lazily: only available where the SpatialClaw package is installed
         # (the MSI agent env), so the API service stays importable without it.
         from spatial_agent.tools.sam3_tool import SAM3Tool

@@ -136,6 +136,15 @@ class ConcurrencyLimitMiddleware:
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return
+        # Read-only requests do no model work, so they must not consume a slot.
+        # A QR code on a poster produces exactly this shape: a burst of GET traffic
+        # to the landing page and the agent card. Counting those against the limit
+        # meant the fifth simultaneous visitor received HTTP 503 rather than a page,
+        # which is the one failure mode a conference demo cannot afford. Mirrors the
+        # exemption BearerAuthMiddleware already applies to the same method set.
+        if scope.get("method", "GET").upper() in {"GET", "HEAD", "OPTIONS"}:
+            await self.app(scope, receive, send)
+            return
         async with self._lock:
             if self._active >= self.maximum:
                 response = PlainTextResponse("Server is busy", status_code=503)
