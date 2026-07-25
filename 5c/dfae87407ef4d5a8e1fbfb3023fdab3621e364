@@ -1,0 +1,21 @@
+paper/spatial_atlas.md
+  s_9ecf78dacc63d1::t_559f8acd26b874 389
+paper/spatial_atlas.tex
+  s_9ecf78dacc63d1::t_559f8acd26b874 690-691,702-703
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "5cdfae87407ef4d5a8e1fbfb3023fdab3621e364",
+  "prompts": {},
+  "sessions": {
+    "s_9ecf78dacc63d1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "555a542c-3ba5-4d32-b7d8-3d3ab62638f3",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
