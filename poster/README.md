@@ -13,6 +13,7 @@ print preflight record, and evidence-bounded narrative materials.
 | `poster/spatial_atlas_poster_preview.png` | Screen preview rendered from the authoritative PDF |
 | `poster/PRINT_PREFLIGHT.md` | Measured PDF, font, image, margin, link, and QR checks |
 | `poster/POSTER_NARRATIVE.md` | Current evidence-bounded spoken narrative |
+| `poster/POSTER_QA_PACKET.md` | Audited audience questions, answers, arithmetic checks, and red-card claims |
 | `poster/CLAUDE_POSTER_NARRATIVE_HANDOFF.md` | Claim boundaries and source hierarchy for narrative revision |
 | `poster/CLAUDE_POSTER_REVISION_PROMPT.md` | Paste-ready task prompt for Claude |
 | `poster/assets/umn_seal.pdf` | Vector University of Minnesota seal used in the header |
@@ -48,8 +49,9 @@ Use this order when auditing or revising poster claims:
 5. Private cluster runs, local worktrees, and recalled chat context are not
    public evidence.
 
-The FieldWorkArena and MLE-Bench values on the poster are source-reported
-preprint results. They are not reproduced by this public repository snapshot.
+The public manuscript contains the FieldWorkArena and MLE-Bench tables. Their
+values are source-reported preprint results, and this repository snapshot does
+not contain the run artifacts needed to reproduce them.
 The public main branch also does not independently contain the local
 SpatialClaw metric-bridge implementation or its experiment artifacts. Figure 2
 must therefore retain its implemented versus proposed boundary, and any local

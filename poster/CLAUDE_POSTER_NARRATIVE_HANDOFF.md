@@ -1,16 +1,16 @@
-# Claude Handoff: Spatial Atlas Poster Narrative
+# Claude Handoff: Spatial Atlas Poster Narrative and Q&A
 
 ## Objective
 
-Audit and refine the public spoken narrative for the Spatial Atlas research
-poster. Improve accuracy, cadence, transitions, and accessibility without
-changing a verified number or blurring the boundary between implemented code,
-source-reported preprint results, upstream SpatialClaw results, local
-integration work, and proposed integration.
+Audit and refine the public spoken narrative and audience Q&A for the Spatial
+Atlas research poster. Improve accuracy, cadence, transitions, and
+accessibility without changing a verified number or blurring the boundary
+between implemented code, source-reported preprint results, upstream
+SpatialClaw results, local integration work, and proposed integration.
 
 The poster is already print-preflighted. Narrative work should edit
-`poster/POSTER_NARRATIVE.md` only unless Arun explicitly requests a new poster
-layout or content pass.
+`poster/POSTER_NARRATIVE.md` and `poster/POSTER_QA_PACKET.md` only unless Arun
+explicitly requests a new poster layout or content pass.
 
 ## Read order
 
@@ -18,30 +18,31 @@ Work from the repository root and read these files in order:
 
 1. `poster/CLAUDE_POSTER_NARRATIVE_HANDOFF.md`
 2. `poster/POSTER_NARRATIVE.md`
-3. `poster/spatial_atlas_poster.tex`
-4. `poster/PRINT_PREFLIGHT.md`
-5. `src/agent.py`
-6. `src/fieldwork/handler.py`
-7. `src/fieldwork/reasoner.py`
-8. `src/fieldwork/spatial.py`
-9. `src/fieldwork/vision.py`
-10. `src/mlebench/handler.py`
-11. `src/mlebench/codegen.py`
-12. `src/mlebench/executor.py`
-13. `src/entropy/engine.py`
-14. `src/cost/router.py`
-15. `src/cost/tracker.py`
-16. `src/llm.py`
-17. `src/executor.py`
-18. `src/config.py`
-19. `tests/test_agent.py`
-20. `scenarios/fieldwork/scenario.toml`
-21. `scenarios/mlebench/scenario.toml`
-22. `paper/spatial_atlas.tex`
-23. `paper/spatial_atlas.md`
-24. `ARCHITECTURE.md`
-25. `README.md`
-26. `pyproject.toml`
+3. `poster/POSTER_QA_PACKET.md`
+4. `poster/spatial_atlas_poster.tex`
+5. `poster/PRINT_PREFLIGHT.md`
+6. `src/agent.py`
+7. `src/fieldwork/handler.py`
+8. `src/fieldwork/reasoner.py`
+9. `src/fieldwork/spatial.py`
+10. `src/fieldwork/vision.py`
+11. `src/mlebench/handler.py`
+12. `src/mlebench/codegen.py`
+13. `src/mlebench/executor.py`
+14. `src/entropy/engine.py`
+15. `src/cost/router.py`
+16. `src/cost/tracker.py`
+17. `src/llm.py`
+18. `src/executor.py`
+19. `src/config.py`
+20. `tests/test_agent.py`
+21. `scenarios/fieldwork/scenario.toml`
+22. `scenarios/mlebench/scenario.toml`
+23. `paper/spatial_atlas.tex`
+24. `paper/spatial_atlas.md`
+25. `ARCHITECTURE.md`
+26. `README.md`
+27. `pyproject.toml`
 
 Use only the official upstream sources for SpatialClaw:
 
@@ -54,6 +55,10 @@ Use the public Spatial Atlas preprint for source-reported paper claims:
 
 Do not rely on prior chat context, private local paths, cluster logs, or recalled
 experiment results.
+
+The implementation claim audit for the current packet is anchored to commit
+`d29c8c30a3cbf463fa120c825b3c074a3a07e923`. If source code has changed, repeat
+the audit before revising any implementation claim.
 
 ## Evidence hierarchy
 
@@ -83,6 +88,9 @@ If two sources disagree, show the disagreement. Do not silently reconcile it.
   from a Strong-tier model through a structured JSON extraction prompt.
 - The graph implements deterministic distance calculation, relation-distance
   completion, radius queries, constraint checks, and fact-sheet serialization.
+- Relation-distance completion fills only missing values. An
+  extractor-supplied distance is preserved, and the public relation schema
+  does not record whether the value was supplied or derived.
 - The graph arithmetic uses model-estimated 2D coordinates. It is not measured
   3D geometry.
 - The current FieldWork path produces one Strong-tier answer, obtains a
@@ -93,9 +101,11 @@ If two sources disagree, show the disagreement. Do not silently reconcile it.
 - The repository does not provide calibration evidence for the confidence
   estimate.
 - The public MLE handler attempts bounded repair, parses
-  `VALIDATION_SCORE`, requests at most two score-driven revisions under
-  default configuration, and retains only an improvement under the configured
-  metric direction.
+  `VALIDATION_SCORE`, requests at most two score-driven revisions by default,
+  and retains only an improvement under the analyzer-supplied direction as
+  interpreted by a keyword heuristic.
+- Public main records provider-reported token usage, but it does not enforce
+  the configured token field as a hard admission budget.
 
 ### Public-main contradiction that must remain visible
 
@@ -121,7 +131,8 @@ matching hardened implementation is published and verified.
   model-routing equations are paper-level theory.
 
 These values are source-reported preprint results. They are not reproduced by
-public main or by public integration artifacts.
+public main or by public integration artifacts. The public manuscript does
+contain both tables. Do not claim that the GitHub paper omits them.
 
 ### Upstream SpatialClaw
 
@@ -171,7 +182,7 @@ status.
 - Label both result tables before quoting any value.
 - Introduce SpatialClaw as a separate framework before discussing integration.
 - Surface the public MLE gate contradiction instead of concealing it.
-- Close on traceability, recomputation, revision, and fail-closed evidence.
+- Close on traceability, recomputation, revision, and verifiable evidence.
 
 ## Required output
 
@@ -180,7 +191,7 @@ Return:
 1. A polished four-to-six-minute spoken walk-through with light pointing cues.
 2. A two-minute version.
 3. A thirty-second opening.
-4. Five likely audience questions with concise, evidence-bounded answers.
+4. An audited public Q&A packet with concise, evidence-bounded answers.
 5. A claim-audit table with these categories:
    implemented public Spatial Atlas,
    source-reported Spatial Atlas preprint,
