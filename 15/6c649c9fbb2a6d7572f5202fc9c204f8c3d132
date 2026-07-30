@@ -1,0 +1,19 @@
+poster/spatial_atlas_poster.tex
+  s_377ce295e32669::t_53e67fb2b71339 52,190-198,214-231
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "156c649c9fbb2a6d7572f5202fc9c204f8c3d132",
+  "prompts": {},
+  "sessions": {
+    "s_377ce295e32669": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f934f-7b83-78d2-8061-95a4bbff4347",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
