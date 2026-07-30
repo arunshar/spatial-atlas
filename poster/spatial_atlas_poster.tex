@@ -49,6 +49,7 @@
 
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
+\hypersetup{colorlinks=false,pdfborder={0 0 0}}
 
 % ---------------------------------------------------------------------
 %  PALETTE. Transcribed from the :root custom properties of the
@@ -186,15 +187,15 @@
       \end{minipage}
     \end{center}
     \begin{tikzpicture}[remember picture,overlay]
-      \node[anchor=west,inner sep=0]
-        at ([xshift=2.0cm,yshift=-4.6cm]current page.north west)
-        {\includegraphics[height=5.2cm]{assets/umn_seal.pdf}};
-      \node[anchor=west,inner sep=0]
-        at ([xshift=8.0cm,yshift=-4.6cm]current page.north west)
-        {\includegraphics[width=5.5cm]{assets/nvidia_logo.pdf}};
-      \node[anchor=east,inner sep=0]
-        at ([xshift=-2.0cm,yshift=-4.6cm]current page.north east)
-        {\includegraphics[width=14.5cm,trim=22bp 22bp 22bp 36bp,clip]
+      \node[anchor=south west,inner sep=0]
+        at ([xshift=1.25cm,yshift=-8.15cm]current page.north west)
+        {\includegraphics[height=7.10cm]{assets/umn_seal.pdf}};
+      \node[anchor=south west,inner sep=0]
+        at ([xshift=8.75cm,yshift=-8.15cm]current page.north west)
+        {\includegraphics[width=7.65cm]{assets/nvidia_logo.pdf}};
+      \node[anchor=south east,inner sep=0]
+        at ([xshift=-1.25cm,yshift=-8.15cm]current page.north east)
+        {\includegraphics[width=18.50cm,trim=22bp 22bp 22bp 36bp,clip]
           {assets/berkeley_rdi.png}};
     \end{tikzpicture}%
     \vspace{0.24cm}
@@ -210,20 +211,24 @@
     \hspace*{0pt}\textcolor{ncline}{\rule{\paperwidth}{0.16cm}}
   \end{beamercolorbox}
   \begin{beamercolorbox}[wd=\paperwidth,sep=0.28cm,center]{background canvas}
-    {\color{ncmuted}\fontsize{18}{22}\selectfont
-      \texttt{+1 612-946-5123}
-      \quad\textcolor{nclinetwo}{$|$}\quad
-      \texttt{arunshar@umn.edu}
-      \quad\textcolor{nclinetwo}{$|$}\quad
-      \texttt{https://www.linkedin.com/in/arun08sharma/}
-      \quad\textcolor{nclinetwo}{$|$}\quad
-      \texttt{https://arunshar.com/}
-      \quad\textcolor{nclinetwo}{$|$}\quad
-      \texttt{https://github.com/arunshar}
-      \quad\textcolor{nclinetwo}{$|$}\quad
-      \texttt{https://huggingface.co/Arun0808}
-      \quad\textcolor{nclinetwo}{$|$}\quad
-      \texttt{https://x.com/arunshar08}}
+    {\color{ncmuted}\fontsize{16}{19}\selectfont
+      \href{tel:+16129465123}{\texttt{Phone: +1 612-946-5123}}
+      \hspace{0.55em}\textcolor{nclinetwo}{$|$}\hspace{0.55em}
+      \href{mailto:arunshar@umn.edu}{\texttt{Email: arunshar@umn.edu}}
+      \hspace{0.55em}\textcolor{nclinetwo}{$|$}\hspace{0.55em}
+      \href{https://www.linkedin.com/in/arun08sharma/}{%
+        \texttt{LinkedIn Profile: https://www.linkedin.com/in/arun08sharma/}}
+      \hspace{0.55em}\textcolor{nclinetwo}{$|$}\hspace{0.55em}
+      \href{https://arunshar.com/}{\texttt{Website: https://arunshar.com/}}
+      \hspace{0.55em}\textcolor{nclinetwo}{$|$}\hspace{0.55em}
+      \href{https://github.com/arunshar}{%
+        \texttt{Github Profile: https://github.com/arunshar}}
+      \hspace{0.55em}\textcolor{nclinetwo}{$|$}\hspace{0.55em}
+      \href{https://huggingface.co/Arun0808}{%
+        \texttt{Hugging Face Profile: https://huggingface.co/Arun0808}}
+      \hspace{0.55em}\textcolor{nclinetwo}{$|$}\hspace{0.55em}
+      \href{https://x.com/arunshar08}{%
+        \texttt{X profile: https://x.com/arunshar08}}}
   \end{beamercolorbox}
   \vspace{0.12cm}
 }
