@@ -1,0 +1,743 @@
+% =====================================================================
+%  Spatial Atlas poster, 48" x 36" landscape, pdfLaTeX.
+%
+%  VISUAL LANGUAGE: adapted from the design system of NVIDIA Research's
+%  SpatialClaw project page (spatialclaw.github.io). Palette, hairline
+%  separation, and callout mechanics are borrowed as design. SpatialClaw
+%  mechanisms and results are separately attributed. NVIDIA Sans is
+%  EULA-restricted and is deliberately substituted with EB Garamond.
+%
+%  STRUCTURE: five numbered sections in the Heilmeier register used in
+%  the Purdue IPAI one-pager (Objective / Limits of current practice /
+%  Approach and why it will succeed / Milestones / Impact and risk),
+%  set as BOLDED RUN-IN headers, not standalone heading lines.
+%
+%  EVIDENCE BOUNDARY:
+%    (A) Spatial Atlas results are transcribed from arXiv:2604.12102v2.
+%        They are source-reported, not reproduced by the current repository
+%        or the MSI/QSpatial chain.
+%    (B) SpatialClaw results and mechanism come from the official
+%        NVlabs/SpatialClaw source. Its benchmarks, metrics, models, and
+%        perception stack differ from Spatial Atlas.
+%    (C) QSpatial appears only as an integration and follow-up design. No
+%        QSpatial arm score appears on this poster.
+%  Never merge metrics, models, or perception stacks across these sources.
+% =====================================================================
+\documentclass{beamer}
+
+% 48in x 36in landscape = 121.92cm x 91.44cm.
+\usepackage[orientation=landscape,size=custom,width=121.92,height=91.44,scale=1.25]{beamerposter}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[lining]{ebgaramond}
+\usepackage{FiraMono}
+% beamer forces \sffamily internally regardless of \familydefault; point
+% \sfdefault at the same Garamond family so nothing silently falls back to
+% Computer Modern Sans.
+\renewcommand*\sfdefault{\rmdefault}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\usepackage{qrcode}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc}
+
+\usetheme{default}
+\setbeamertemplate{navigation symbols}{}
+
+% ---------------------------------------------------------------------
+%  PALETTE. Transcribed from the :root custom properties of the
+%  SpatialClaw project page stylesheet. The three-tier green is what
+%  makes the design read as "light green" overall: a 12%-alpha wash for
+%  fills, the brand green for rules and graphics, and a darkened green
+%  reserved for text on white.
+% ---------------------------------------------------------------------
+\definecolor{ncgreen}{HTML}{76B900}      % brand: rules, graphics, accent bars
+\definecolor{ncgreendark}{HTML}{3F8500}  % green TEXT on white (contrast-safe)
+\definecolor{ncwash}{HTML}{F1F8E3}       % 12% green over white, flattened
+\definecolor{ncink}{HTML}{161616}        % headings
+\definecolor{ncinktwo}{HTML}{161616}     % body copy
+\definecolor{ncmuted}{HTML}{161616}      % kickers, captions, notes
+\definecolor{ncline}{HTML}{E4E4E1}       % every hairline
+\definecolor{nclinetwo}{HTML}{CCCCCC}    % stronger borders
+\definecolor{ncbgtwo}{HTML}{F5F5F3}      % alternating band, table header
+\definecolor{ncmagenta}{HTML}{8C3C8C}    % negative deltas
+
+\setbeamercolor{background canvas}{bg=white}
+\setbeamercolor{normal text}{fg=ncinktwo}
+\usebeamercolor[fg]{normal text}
+
+% Blocks are suppressed entirely. The site separates content with 1px
+% hairlines and whitespace, never with filled title bars or shadows.
+\setbeamertemplate{blocks}[default]
+\setbeamercolor{block title}{bg=white,fg=ncink}
+\setbeamercolor{block body}{bg=white,fg=ncinktwo}
+
+% Beamer's default itemize marker is structure-blue, which fights the green
+% design system everywhere a list appears. Bind it to the brand green.
+\setbeamercolor{itemize item}{fg=ncgreen}
+\setbeamercolor{itemize subitem}{fg=ncgreen}
+\setbeamercolor{itemize subsubitem}{fg=ncgreen}
+
+% ---------------------------------------------------------------------
+%  TYPOGRAPHIC SIGNATURE
+%  Display headings: tight leading, near-black. Mono micro-labels:
+%  wide positive tracking, uppercase, muted.
+% ---------------------------------------------------------------------
+\newcommand{\trackedcaps}[1]{{\ttfamily\small\bfseries\color{ncmuted}\MakeUppercase{#1}}}
+
+% Emphasis is BOLD, never italic. Italic survives only where Chicago
+% requires it: venue and journal names in the reference list.
+\newcommand{\gem}[1]{\textbf{\textcolor{ncgreendark}{#1}}}
+
+% Numbered section: green number, near-black descriptive title, hairline.
+\newenvironment{possection}[2]{%
+  \par\vspace{0.10cm}%
+  \noindent{\color{ncgreendark}\bfseries\large #1}\hspace{0.42em}%
+  {\color{ncink}\bfseries\large #2}\par\vspace{-0.20cm}%
+  \noindent\textcolor{ncline}{\rule{\linewidth}{0.9pt}}\par\vspace{0cm}%
+  \begin{minipage}{\linewidth}%
+}{%
+  \end{minipage}\par\vspace{0.40cm}%
+}
+
+% Subsection: number and title, no hairline, tighter.
+\newcommand{\possub}[2]{%
+  \par\vspace{0.02cm}%
+  \noindent{\color{ncgreendark}\bfseries #1}\hspace{0.38em}%
+  {\color{ncink}\bfseries #2}\par\vspace{0.07cm}%
+}
+
+% Heilmeier run-in header, Purdue one-pager convention: bolded,
+% sentence-case, colon-terminated, run into the first line of its
+% paragraph rather than standing on its own line.
+\newcommand{\heil}[1]{{\color{ncink}\bfseries #1:}\hspace{0.3em}}
+
+% Figure and table captions, at body size per the review note.
+\newcommand{\figcap}[2]{%
+  \par\vspace{0.18cm}%
+  \raggedright{\color{ncmuted}\normalsize\textbf{#1}\hspace{0.3em}#2\par}%
+}
+
+% Highlighter-pen mark: a green band over the lower portion of the line.
+\newcommand{\mrk}[1]{\colorbox{ncwash}{\textbf{#1}}}
+
+% Signed delta annotations. Wired now, used only once real numbers exist.
+\definecolor{deltapos}{HTML}{008200}
+\definecolor{deltaneg}{HTML}{C81E1E}
+\newcommand{\up}[1]{\,{\scriptsize\color{deltapos}$\uparrow$#1}}
+\newcommand{\dn}[1]{\,{\scriptsize\color{deltaneg}$\downarrow$#1}}
+
+% Algorithm step number and nesting indent. These MUST stay in the preamble:
+% beamer re-reads frame bodies, so a \newcommand taking #1 inside a frame
+% raises 'Illegal parameter number in definition of \iterate'.
+\newcommand{\stp}[1]{{\ttfamily\bfseries\color{ncgreendark}#1}}
+\newcommand{\lvl}{\hspace{1.3em}}
+
+% Underscore-safe monospace for API names.
+\newcommand{\apicode}[1]{{\ttfamily\small #1}}
+
+% Takeaway box: thin green rule, wash fill, mono uppercase label.
+\newtcolorbox{takeaway}{%
+  enhanced, colback=ncwash, colframe=ncgreen,
+  boxrule=1.1pt, arc=3pt, left=8pt, right=8pt, top=7pt, bottom=7pt,
+}
+
+% ---------------------------------------------------------------------
+%  HEADER. Title is the paper title verbatim; the second line names the
+%  benchmark work this poster also reports.
+% ---------------------------------------------------------------------
+\setbeamertemplate{headline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,sep=0pt]{background canvas}
+    \vspace{0.35cm}
+    \begin{center}
+      \begin{minipage}{0.93\paperwidth}
+        \centering
+        {\color{ncgreendark}\ttfamily\normalsize\bfseries
+          \MakeUppercase{Compute-Grounded Reasoning\ \ $\cdot$\ \ University of Minnesota}}\par
+        \vspace{0.28cm}
+        {\color{ncink}\bfseries\fontsize{62}{70}\selectfont
+          Spatial Atlas: Compute-Grounded Reasoning for Spatial-Aware Research Agent Benchmarks}\par
+        \vspace{0.30cm}
+        {\color{ncinktwo}\fontsize{34}{40}\selectfont
+          From computable evidence to adaptive spatial actions}\par
+        \vspace{0.32cm}
+        {\color{ncink}\large Arun Sharma
+          \quad\textcolor{nclinetwo}{$|$}\quad
+          Advisors: Prof. Shashi Shekhar and Prof. Vipin Kumar}\par
+        \vspace{0.16cm}
+        {\color{ncmuted}\normalsize Department of Computer Science and Engineering,
+          University of Minnesota, Twin Cities}\par
+      \end{minipage}
+    \end{center}
+    \vspace{0.24cm}
+  \end{beamercolorbox}
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.30cm,dp=0cm]{background canvas}
+    \hspace*{0pt}\textcolor{ncgreen}{\rule{\paperwidth}{0.30cm}}
+  \end{beamercolorbox}
+}
+
+% FOOTER. Attribution of NVIDIA's SpatialClaw sits here, prominently.
+\setbeamertemplate{footline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.16cm,dp=0cm]{background canvas}
+    \hspace*{0pt}\textcolor{ncline}{\rule{\paperwidth}{0.16cm}}
+  \end{beamercolorbox}
+  \begin{beamercolorbox}[wd=\paperwidth,sep=0.45cm,center]{background canvas}
+    {\color{ncmuted}\small
+      Spatial Atlas results: Sharma 2026, arXiv:2604.12102v2
+      \quad\textcolor{nclinetwo}{$|$}\quad
+      SpatialClaw: NVIDIA Research, Cho et al. 2026
+      \quad\textcolor{nclinetwo}{$|$}\quad
+      Berkeley RDI Poster Session, 2026
+      \quad\textcolor{nclinetwo}{$|$}\quad
+      \texttt{arunshar@umn.edu}
+      \quad\textcolor{nclinetwo}{$|$}\quad
+      \texttt{github.com/arunshar/spatial-atlas}}
+  \end{beamercolorbox}
+  \vspace{0.3cm}
+}
+
+\title{Spatial Atlas}
+\author{Arun Sharma}
+
+% =====================================================================
+\begin{document}
+\begin{frame}[t]
+\vspace{0.42cm}
+\begin{columns}[t,onlytextwidth]
+
+%% ==================== COLUMN 1 : SPATIAL ATLAS SYSTEM ====================
+\begin{column}{0.320\textwidth}
+
+  \begin{possection}{1.}{Overview}
+    \heil{Objective} Compute deterministic subproblems before language generation
+    (\textbf{CGR}).
+    \par\vspace{0.14cm}
+    \heil{Limit} Answer-only scores cannot distinguish grounded geometry from guessing.
+    \par\vspace{0.18cm}
+    \begin{takeaway}
+      {\ttfamily\footnotesize\bfseries\color{ncgreendark}\MakeUppercase{Key takeaway}}\par
+      \vspace{0.18cm}
+      {\color{ncink}\normalsize Computing what can be computed before generating what
+      must be generated.}
+    \end{takeaway}
+  \end{possection}
+
+  \begin{possection}{2.}{Spatial Atlas System}
+    {\color{ncmuted}\small Two benchmark-oriented handlers share one A2A server,
+    model routing, budgets, and provenance controls.}
+    \par\vspace{0.26cm}
+    \noindent
+    \begin{minipage}[t]{0.43\linewidth}
+      \vspace{0pt}
+      \centering
+      \begin{tikzpicture}[
+          every node/.style={font=\small},
+          box/.style={rectangle, draw=ncgreendark, line width=1.4pt, rounded corners=3pt,
+            fill=ncwash, minimum height=1.4cm, align=center,
+            text=ncink, font=\small\bfseries, inner sep=4pt},
+          wide/.style={box, minimum width=13.7cm},
+          acc/.style={box},
+          arr/.style={-{Stealth[length=4.6mm,width=3.4mm]}, ncgreendark, line width=1.8pt},
+          shared/.style={-{Stealth[length=4.2mm,width=3.0mm]}, ncgreendark,
+            line width=1.6pt, dashed},
+        ]
+        \node[wide] at (0,0) (a2a) {A2A Protocol Server};
+        \node[box, minimum width=7.2cm] at (0,-3.05) (cls) {Domain Classifier};
+        \node[box, minimum width=7.0cm, minimum height=1.9cm]
+          at (-4.15,-6.45) (fwa) {FieldWorkArena\\Handler};
+        \node[box, minimum width=7.0cm, minimum height=1.9cm]
+          at (4.15,-6.45) (mle) {MLE-Bench\\Handler};
+        \node[box, minimum width=7.0cm, minimum height=1.9cm]
+          at (-4.15,-10.05) (scene) {Spatial Scene\\Graph Engine};
+        \node[box, minimum width=7.0cm, minimum height=1.9cm]
+          at (4.15,-10.05) (pipe) {Self-Healing\\ML Pipeline};
+        \node[wide, minimum height=2.0cm] at (0,-13.65) (sh)
+          {Shared Control\\{\footnotesize\mdseries LiteLLM $\cdot$ budgets $\cdot$ provenance}};
+        \node[acc, minimum width=13.7cm, minimum height=2.0cm] at (0,-17.10) (gate)
+          {Handler-Specific Gates\\{\footnotesize\mdseries FieldWork confidence $\cdot$ MLE execution attestation}};
+
+        \draw[arr] (a2a) -- (cls);
+        \draw[arr] (cls.south) -- ++(0,-0.82) -| (fwa.north);
+        \draw[arr] (cls.south) -- ++(0,-0.82) -| (mle.north);
+        \draw[arr] (fwa) -- (scene);
+        \draw[arr] (mle) -- (pipe);
+        \draw[shared] (scene.south) -- ++(0,-0.78) -| ([xshift=-4.15cm]sh.north);
+        \draw[shared] (pipe.south) -- ++(0,-0.78) -| ([xshift=4.15cm]sh.north);
+        \draw[shared] (sh) -- (gate);
+      \end{tikzpicture}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.525\linewidth}
+      \vspace{0pt}
+      \raggedright
+      \heil{Approach and why it will succeed} Four mechanisms instantiate
+      compute-grounded reasoning (CGR) end to end.
+      \par\vspace{0.18cm}
+      \small
+      \begin{itemize}\setlength{\itemsep}{0.08cm}
+        \item \textbf{Typed scene evidence}: entities, estimated positions,
+              relations, zones, and constraints.
+        \item \textbf{Confidence-gated reflection}: one conditional refinement when
+              self-graded confidence is below $0.6$.
+        \item \textbf{Fail-closed execution}: generated code requires explicit opt-in
+              and isolated-worker attestation.
+        \item \textbf{Repair then score-gated refinement}: diagnose and patch failures
+              using error and stdout traces. After successful execution, retain a
+              refinement only when its parsed validation score improves.
+      \end{itemize}
+      \par\vspace{0.18cm}
+      The spatial branch computes relations and facts. The ML branch analyzes tasks,
+      generates and repairs pipelines, and compares pipeline-emitted validation scores.
+    \end{minipage}
+    \figcap{Figure 1.}{Spatial Atlas architecture. A classifier routes tasks to two
+    handlers that use shared control services and apply handler-specific gates.
+    Dashed lines indicate shared services.}
+  \end{possection}
+
+  \begin{possection}{3.}{Contributions}
+    \heil{Computable evidence substrate} Given an image $I$ and question $q$,
+    CGR separates evidence construction from answer generation by creating a typed
+    graph $G=(V,E)$:
+    \begingroup
+    \fontsize{29}{33}\selectfont
+    \refstepcounter{equation}\edef\entityeqno{\theequation}
+    \refstepcounter{equation}\edef\relationeqno{\theequation}
+    \par\vspace{0.05cm}
+    \noindent\makebox[\linewidth]{%
+      $\displaystyle
+        v_i=\texttt{SpatialEntity}(\mathrm{id}_i,\ell_i,\mathrm{pos}_i,
+        \mathrm{attrs}_i,z_i)$%
+      \hspace{0.45em}\textnormal{(\entityeqno)}
+      \hfill
+      $\displaystyle e_{ij}=\texttt{SpatialRelation}(i,p_{ij},j,d_{ij})$%
+      \hspace{0.45em}\textnormal{(\relationeqno)}}
+    \par\vspace{0.02cm}
+    \endgroup
+    \vspace{-0.16cm}
+    \heil{Deterministic graph program} The graph exposes four computation and query
+    methods plus one fact-sheet serializer over vision-language-estimated coordinates,
+    producing structured evidence rather than measured 3D geometry.
+    \par\vspace{0.14cm}
+    \begin{center}
+    \begin{tikzpicture}[
+        dagbox/.style={rectangle, draw=ncgreendark, line width=1.4pt,
+          rounded corners=3pt, fill=ncwash, minimum width=7.45cm,
+          minimum height=2.80cm, align=center, text=ncink,
+          font=\small\bfseries, inner sep=5pt},
+        dagarr/.style={-{Stealth[length=6.0mm,width=4.2mm]},
+          ncgreendark, line width=1.8pt},
+      ]
+      \node[dagbox] at (0,0) (dist)
+        {compute\_distance\\$(i,j)$\\{\footnotesize\mdseries pair metric}};
+      \node[dagbox] at (9.20,0) (all)
+        {compute\_all\_\\distances()\\{\footnotesize\mdseries relation metrics}};
+      \node[dagbox] at (18.40,0) (check)
+        {check\_\\constraints()\\{\footnotesize\mdseries safety violations}};
+      \node[dagbox] at (27.60,0) (facts)
+        {to\_fact\_\\sheet()\\{\footnotesize\mdseries inspectable evidence}};
+      \node[dagbox] at (9.20,-5.20) (near)
+        {query\_near\\$(v,r)$\\{\footnotesize\mdseries radius query}};
+
+      \draw[dagarr] (dist) -- (all);
+      \draw[dagarr] (all) -- (check);
+      \draw[dagarr] (check) -- (facts);
+      \draw[dagarr] (all.north) -- ++(0,1.55) -| (facts.north);
+      \draw[dagarr] (dist.south) |- (near.west);
+    \end{tikzpicture}
+    \end{center}
+    \vspace{0.06cm}
+    {\centering\ttfamily\normalsize\bfseries\color{ncgreendark}
+      SCENE-GRAPH DATAFLOW DAG\par}
+    \par\vspace{0.22cm}
+    \begin{itemize}\setlength{\itemsep}{0pt}
+      \item \heil{Scene-graph flow} Extraction proposes entities and approximate
+      positions $\rightarrow$ structuring writes typed vertices and relations
+      $\rightarrow$ computation evaluates geometry and constraints on the fixed
+      graph. \apicode{compute\_distance(i,j)} feeds the bulk path
+      \apicode{compute\_all\_distances()} $\rightarrow$
+      \apicode{check\_constraints()} $\rightarrow$
+      \apicode{to\_fact\_sheet()}, which serializes stored distances and
+      violations. It also feeds the independent read-only
+      \apicode{query\_near(v,r)} radius branch, which is not required for
+      serialization.
+      \item \heil{Entropy-Guided Reasoning} At step $t$, the knowledge state
+      $\mathcal{K}_t$ aggregates observations, computed facts, and intermediate
+      conclusions. The paper defines answer entropy and selects the action with
+      the greatest expected entropy reduction:
+    \end{itemize}
+    \par\vspace{-0.05cm}
+    \begingroup
+    \fontsize{28}{32}\selectfont
+    \setlength{\abovedisplayskip}{0.02cm}
+    \setlength{\belowdisplayskip}{0.02cm}
+    \setlength{\abovedisplayshortskip}{0.02cm}
+    \setlength{\belowdisplayshortskip}{0.02cm}
+    \begin{equation}
+      H(\mathcal{A}\mid\mathcal{K}_t)
+      =-\sum_{a\in\mathcal{A}}P(a\mid\mathcal{K}_t)
+      \log P(a\mid\mathcal{K}_t)
+    \end{equation}
+    \vspace{-0.10cm}
+    \noindent
+    \begin{minipage}[c]{0.59\linewidth}
+      \begin{equation}
+        c^\star=\arg\max_{c_j}\ \mathbb{E}\!\left[
+        H(\mathcal{A}\mid\mathcal{K}_t)
+        -H(\mathcal{A}\mid\mathcal{K}_t\cup\operatorname{obs}(c_j))
+        \right]
+      \end{equation}
+    \end{minipage}\hfill
+    \begin{minipage}[c]{0.40\linewidth}
+      \begin{equation}
+        \operatorname{reflect}(a)=
+        \begin{cases}
+          \mathrm{True}, & \sigma(a)<\tau\\
+          \mathrm{False}, & \text{otherwise}
+        \end{cases}
+      \end{equation}
+    \end{minipage}
+    \endgroup
+    \vspace{-0.10cm}
+  \end{possection}
+
+  \vspace{-0.40cm}
+
+\end{column}
+
+%% ==================== COLUMN 2 : EVALUATION AND RESULTS ====================
+\begin{column}{0.320\textwidth}
+
+  The proposed routing policy returns a Fast-tier answer above $0.8$, invokes
+  Standard from $0.6$ through $0.8$, and reflects or escalates below
+  $\tau=0.6$, for at most two rounds. This policy is not the deployed
+  FieldWorkArena path. The deployed controller neither evaluates the
+  information-gain objective nor demonstrates calibration of its self-grade.
+  \par\vspace{0.06cm}
+  \noindent
+  \begin{minipage}[t]{0.675\linewidth}
+    \vspace{0pt}
+    \fontsize{29}{35}\selectfont
+    \renewcommand{\arraystretch}{1.04}
+    \begin{tabular}{@{}r@{\hspace{0.55em}}l@{}}
+      \multicolumn{2}{@{}l@{}}{\fontsize{31}{38}\selectfont
+        \textbf{Require:} task $T$, state $\mathcal{K}_0$, budget $B$,
+        threshold $\tau$}\\[0pt]
+      \stp{1} & $a_0,\sigma_0 \leftarrow \texttt{FastModel}(T,\mathcal{K}_0)$\\
+      \stp{2} & \textbf{if} $\sigma_0 \geq 0.8$ \textbf{then}\\
+      \stp{3} & \lvl\textbf{return} $a_0$\\
+      \stp{4} & \textbf{end if}\\
+      \stp{5} & $\mathcal{K}_1 \leftarrow \mathcal{K}_0 \cup \texttt{SceneGraph}(T)$\\
+      \stp{6} & $a_1,\sigma_1 \leftarrow \texttt{StandardModel}(T,\mathcal{K}_1)$\\
+      \stp{7} & \textbf{for} $r=1$ \textbf{to} $2$ \textbf{do}\\
+      \stp{8} & \lvl\textbf{if} $\sigma_1 \geq \tau$ \textbf{then}\\
+      \stp{9} & \lvl\lvl\textbf{return} $a_1$\\
+      \stp{10} & \lvl\textbf{end if}\\
+      \stp{11} & \lvl$\mathcal{K}_{r+1} \leftarrow
+        \texttt{Reflect}(\mathcal{K}_r,a_1)$\\
+      \stp{12} & \lvl$a_1,\sigma_1 \leftarrow
+        \texttt{StrongModel}(T,\mathcal{K}_{r+1})$\\
+      \stp{13} & \textbf{end for}\\
+      \stp{14} & \textbf{return} $a_1$
+    \end{tabular}
+  \end{minipage}\hspace{0.015\linewidth}%
+  \begin{minipage}[t]{0.31\linewidth}
+    \vspace{0.18cm}
+    \centering
+    \begin{minipage}[t]{0.48\linewidth}
+      \centering
+      {\color{black}\qrcode[height=4.8cm,level=Q]{https://github.com/arunshar/spatial-atlas}}
+      \par\vspace{0.12cm}
+      {\ttfamily\scriptsize\color{ncgreendark}GitHub\\arunshar/\\spatial-atlas}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.48\linewidth}
+      \centering
+      {\color{black}\qrcode[height=4.8cm,level=Q]{https://huggingface.co/spaces/Arun0808/spatial-atlas}}
+      \par\vspace{0.12cm}
+      {\ttfamily\scriptsize\color{ncgreendark}Hugging Face\\Arun0808/\\spatial-atlas}
+    \end{minipage}
+    \par\vspace{0.30cm}
+    \begin{minipage}[t]{0.48\linewidth}
+      \centering
+      {\color{black}\qrcode[height=4.8cm,level=Q]{https://arxiv.org/abs/2604.12102v2}}
+      \par\vspace{0.12cm}
+      {\ttfamily\scriptsize\color{ncgreendark}arXiv v2\\2604.12102v2}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.48\linewidth}
+      \centering
+      {\color{black}\qrcode[height=4.8cm,level=Q]{https://raw.githubusercontent.com/arunshar/spatial-atlas/main/poster/spatial_atlas_poster.pdf}}
+      \par\vspace{0.12cm}
+      {\ttfamily\scriptsize\color{ncgreendark}Poster PDF\\spatial-atlas/\\poster}
+    \end{minipage}
+  \end{minipage}
+  \par\vspace{0.02cm}
+
+  \begin{possection}{4.}{Evaluation}
+    \fontsize{31}{33}\selectfont
+    \heil{FieldWorkArena Handler} The v2 preprint describes a pipeline using
+    Florence-2, GPT-4.1 vision, and bounding-box-centroid positions. The current
+    repository instead obtains \apicode{position\_x} and
+    \apicode{position\_y} from a Strong-model JSON extraction prompt.
+    \par\vspace{0.12cm}
+    \stp{1}\hspace{0.45em}Describe the image and extract entities and relations.\par
+    \stp{2}\hspace{0.45em}Store a typed scene graph $G=(V,E)$.\par
+    \stp{3}\hspace{0.45em}Compute pairwise distances and safety-rule violations.\par
+    \stp{4}\hspace{0.45em}Pass a fact sheet to the final language model.\par
+    \par\vspace{0.18cm}
+    \heil{MLE-Bench Handler} Execution of generated code follows a fail-closed
+    policy that requires explicit operator opt-in and isolated-worker
+    attestation.
+    \par\vspace{0.12cm}
+    \stp{1}\hspace{0.45em}Analyze task type, metric, files, and constraints.\par
+    \stp{2}\hspace{0.45em}Generate a strategy-specific Python pipeline.\par
+    \stp{3}\hspace{0.45em}Run only inside the bounded worker after the gate.\par
+    \stp{4}\hspace{0.45em}Diagnose, patch, and retry failures for at most 3 attempts.\par
+    \stp{5}\hspace{0.45em}Parse \apicode{VALIDATION\_SCORE} after success.\par
+    \stp{6}\hspace{0.45em}Refine at most twice and retain only a score improvement.\par
+    \vspace{0.08cm}
+    The rollback rule is explicit:
+    \begin{equation}
+      p_{t+1}=
+      \begin{cases}
+        p' & \mathrm{better}(s(p'),s(p_t))\\
+        p_t & \text{otherwise}
+      \end{cases}
+    \end{equation}
+    \vspace{-0.08cm}
+    \begingroup
+    \normalsize
+    \heil{Prompted safeguards} The generated pipeline is instructed to check
+    ID overlap, row fingerprints, temporal order, and byte-identical media.
+    These checks are not independently enforced. Dummy fallback remains
+    opt-in.\par
+    \endgroup
+  \end{possection}
+
+  \begin{possection}{5.}{Source-Reported Results}
+    \begin{minipage}[t]{0.52\linewidth}
+      \vspace{0pt}
+      \centering
+      {\footnotesize\color{ncink}\bfseries Table 1: FieldWorkArena Accuracy (\%)}\par\vspace{0.12cm}
+      {\footnotesize
+      \setlength{\tabcolsep}{3.0pt}
+      \renewcommand{\arraystretch}{1.10}
+      \begin{tabularx}{\linewidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{0.49\linewidth}
+        >{\centering\arraybackslash}p{0.14\linewidth}
+        >{\centering\arraybackslash}p{0.19\linewidth}
+        >{\centering\arraybackslash}X
+        @{}
+      }
+        \toprule
+        \textbf{Configuration} & \textbf{Factory} & \textbf{Warehouse} & \textbf{Retail} \\
+        \midrule
+        w/o Spatial Scene Graph & 51 & 44 & 55 \\
+        w/o Entropy-Guided Reasoning & 65 & 60 & 67 \\
+        w/o Florence-2 & 63 & 58 & 66 \\
+        GPT-4V Direct & 48 & 41 & 52 \\
+        \midrule
+        \rowcolor{ncwash}\textbf{Overall} & \textbf{72} & \textbf{68} & \textbf{74} \\
+        \bottomrule
+      \end{tabularx}}
+    \end{minipage}\hspace{0.065\linewidth}%
+    \begin{minipage}[t]{0.415\linewidth}
+      \vspace{0pt}
+      \vspace{-0.24cm}
+      \centering
+      {\footnotesize\color{ncink}\bfseries Table 2: MLE-Bench Performance (\%)}\par\vspace{0.12cm}
+      {\footnotesize
+      \setlength{\tabcolsep}{3.0pt}
+      \renewcommand{\arraystretch}{0.98}
+      \begin{tabularx}{\linewidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{0.25\linewidth}
+        >{\centering\arraybackslash}p{0.15\linewidth}
+        >{\centering\arraybackslash}p{0.17\linewidth}
+        >{\centering\arraybackslash}X
+        @{}
+      }
+        \toprule
+        \textbf{Category} &
+        \textbf{Valid} &
+        \textbf{Medal} &
+        \textbf{Competitions} \\
+        \midrule
+        Tabular & 91 & 42 & 32 \\
+        NLP & 78 & 28 & 18 \\
+        Vision & 65 & 15 & 12 \\
+        Time Series & 85 & 35 &  8 \\
+        Other & 72 & 20 &  5 \\
+        \midrule
+        \rowcolor{ncwash}\textbf{Overall} & \textbf{82} & \textbf{32} & \textbf{75} \\
+        \bottomrule
+      \end{tabularx}}
+    \end{minipage}
+    \par\vspace{0.02cm}
+    \begin{takeaway}
+      {\ttfamily\footnotesize\bfseries\color{ncgreendark}\MakeUppercase{Reported result}}\par
+      \vspace{0.12cm}
+      {\color{ncink}\small Removing the Spatial Scene Graph changes Factory,
+      Warehouse, and Retail accuracy by $-21$, $-24$, and $-19$ points.
+      MLE-Bench reports \textbf{82\% valid submissions} and
+      \textbf{32\% medals} across 75 competitions.}
+    \end{takeaway}
+    \par\vspace{-0.25cm}
+    \begingroup
+    \fontsize{28}{30}\selectfont
+    \heil{Limitation without SpatialClaw} Atlas computes deterministic
+    relations over model-estimated 2D coordinates. Localization and depth
+    errors can therefore propagate into distances and constraints.
+    \par\vspace{0cm}
+    \heil{Where SpatialClaw works best} Multi-step tasks with reliable masks,
+    depth, or point maps that require geometric inspection, operation
+    composition, evidence recomputation, and answer revision.
+    \endgroup
+  \end{possection}
+
+  \vspace{-0.40cm}
+
+\end{column}
+
+%% ==================== COLUMN 3 : INTEGRATION CONTRIBUTIONS ====================
+\begin{column}{0.320\textwidth}
+
+  \begin{possection}{6.}{SpatialClaw Integration}
+    \heil{Integration design} Spatial Atlas specifies the evidence that should
+    be available before generation. SpatialClaw contributes a stateful code-action
+    interface that can inspect tool outputs, compose operations, and revise
+    computation after each observation.
+    \par\vspace{0.26cm}
+    \noindent
+    \begin{minipage}[t]{0.57\linewidth}
+      \vspace{0pt}
+      \raggedright
+      \begin{tikzpicture}[
+          every node/.style={font=\small},
+          box/.style={rectangle, draw=ncgreendark, line width=1.4pt,
+            rounded corners=3pt, fill=ncwash, minimum width=18.2cm,
+            text width=17.65cm, minimum height=1.80cm, align=center,
+            text=ncink, font=\small\bfseries, inner sep=5pt},
+          grounded/.style={box},
+          arr/.style={-{Stealth[length=6.0mm,width=4.2mm]},
+            ncgreendark, line width=2.2pt},
+        ]
+        \node[box] at (0,0) (input) {Pixels + Question};
+        \node[box] at (0,-3.70) (tools)
+          {SpatialClaw Perception Tools\\{\footnotesize\mdseries masks $\cdot$ depth $\cdot$ point map}};
+        \node[grounded] at (0,-7.40) (state)
+          {Spatial Atlas Evidence State\\{\footnotesize\mdseries entities $\cdot$ relations $\cdot$ metric values $\cdot$ units $\cdot$ provenance}};
+        \node[box] at (0,-11.10) (kernel)
+          {Persistent Python Kernel\\{\footnotesize\mdseries inspect $\cdot$ compose $\cdot$ recompute $\cdot$ revise}};
+        \node[grounded] at (0,-14.80) (answer)
+          {Verifier Contract $\rightarrow$ Answer};
+        \draw[arr] (input) -- (tools);
+        \draw[arr] (tools) -- (state);
+        \draw[arr] (state.south) -- (kernel.north);
+        \draw[arr, rounded corners=4mm]
+          (kernel.east) -- ++(1.40cm,0) |- (state.east);
+        \draw[arr] (kernel) -- (answer);
+      \end{tikzpicture}
+    \end{minipage}\hspace{0.035\linewidth}%
+    \begin{minipage}[t]{0.395\linewidth}
+      \vspace{0pt}
+      \raggedright
+      \small
+      \heil{Integration rationale} Four SpatialClaw mechanisms enable
+      stateful CGR.
+      \begin{itemize}
+        \setlength{\topsep}{0.08cm}
+        \setlength{\itemsep}{0.08cm}
+        \setlength{\parsep}{0pt}
+        \setlength{\partopsep}{0pt}
+        \item \textbf{Code as action}: AST-checked cells compose tools one
+              step at a time.
+        \item \textbf{Persistent state}: variables and outputs persist across
+              steps.
+        \item \textbf{Metric perception}: SAM3 and Depth-Anything-3 expose
+              masks and reconstructed geometry.
+        \item \textbf{Feedback-driven revision}: stdout, variables, and images
+              inform the next step before \texttt{ReturnAnswer}.
+      \end{itemize}
+    \end{minipage}
+    \par
+    \figcap{Figure 2.}{Integration design. The local metric bridge is implemented.
+    The persistent-kernel link, evidence journal, and post-kernel verifier are
+    the next integration steps.}
+    \par\vspace{0.20cm}
+    \begin{takeaway}
+      {\ttfamily\footnotesize\bfseries\color{ncgreendark}\MakeUppercase{Upstream context}}\par
+      \vspace{0.12cm}
+      {\color{ncink}\normalsize SpatialClaw is a separate, training-free
+      framework that treats code as the action interface. A VLM writes one
+      AST-checked Python cell per step in a persistent kernel, then conditions
+      later actions on text, variables, errors, and rendered evidence. The
+      kernel exposes SAM3 and Depth-Anything-3 perception primitives with
+      scientific libraries. The paper reports \textbf{59.9\% average accuracy
+      across 20 spatial reasoning benchmarks} and \textbf{+11.2 points} over
+      the prior best spatial agent, using the same prompt, tool set, and
+      hyperparameters across six VLM backbones. These are SpatialClaw results,
+      not Spatial Atlas evaluations. Its tasks, \mbox{metrics}, models, and
+      perception stack differ.}
+    \end{takeaway}
+  \end{possection}
+
+  \begin{possection}{7.}{Integration Contributions}
+    \possub{7.1}{Measured Geometry Bridge}
+    The FieldWork handler can switch from the scene graph to a metric backend that
+    invokes SpatialClaw perception primitives. Strict QSpatial mode fails closed
+    rather than falling back.
+    \par\vspace{0.16cm}
+    \stp{1}\hspace{0.45em}Obtain object masks and a reconstructed point map.\par
+    \stp{2}\hspace{0.45em}Erode masks and retain finite, confidence-qualified points.\par
+    \stp{3}\hspace{0.45em}Build deterministic horizontal XZ voxel representatives.\par
+    \stp{4}\hspace{0.45em}Compute symmetric directed nearest-neighbor 5th percentiles.\par
+    \stp{5}\hspace{0.45em}Validate metric range, provenance, protocol contracts,
+    and evidence hashes.\par
+    \vspace{0.10cm}
+    \begin{align}
+      d_{A\rightarrow B}
+        &= Q_{.05}\!\left(
+          \left\{\min_{b\in B}\lVert a-b\rVert_{XZ}:a\in A\right\}
+        \right)\\
+      \hat d(A,B) &= \min(d_{A\rightarrow B},d_{B\rightarrow A})
+    \end{align}
+    \vspace{-0.20cm}
+    {\color{ncmuted}\normalsize SpatialClaw supplies the perception primitives.
+    Erosion, voxelization, the surface-gap estimator, strict validation, and
+    the Atlas scene bridge are local Spatial Atlas work.}
+    \par\vspace{0.26cm}
+
+    \possub{7.2}{Shared Action Contracts}
+    The integration contract defines four requirements:
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item \textbf{Kernel-visible state}: expose entities, values, confidence,
+            units, and provenance.
+      \item \textbf{Stateful contract}: inspect, compose, recompute, and revise
+            evidence per observation.
+      \item \textbf{Evidence-use journal}: record facts and tool outputs used
+            by each answer.
+      \item \textbf{Verifier contract}: count only answers backed by fresh,
+            valid, attested evidence.
+    \end{itemize}
+    \par\vspace{0.20cm}
+    \begin{takeaway}
+      {\ttfamily\footnotesize\bfseries\color{ncgreendark}\MakeUppercase{Take-away}}\par
+      \vspace{0.12cm}
+      {\color{ncink}\normalsize Spatial Atlas makes evidence explicit and
+      verifiable. SpatialClaw adds metric perception and a stateful action loop
+      so spatial answers can be recomputed, revised, and traced to evidence.}
+    \end{takeaway}
+  \end{possection}
+
+  \vspace{-0.40cm}
+
+\end{column}
+
+\end{columns}
+\end{frame}
+\end{document}
