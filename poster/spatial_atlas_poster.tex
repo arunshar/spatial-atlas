@@ -142,6 +142,19 @@
 % Underscore-safe monospace for API names.
 \newcommand{\apicode}[1]{{\ttfamily\small #1}}
 
+% QR codes grow from their lower-left corner so the 2x2 matrix keeps its
+% established anchors while using more of the available algorithm-side space.
+\newsavebox{\qrbasebox}
+\newsavebox{\qrgrowbox}
+\newlength{\qrlift}
+\newcommand{\anchoredqr}[1]{%
+  \sbox{\qrbasebox}{\qrcode[height=4.8cm,level=Q]{#1}}%
+  \sbox{\qrgrowbox}{\qrcode[height=5.2cm,level=Q]{#1}}%
+  \setlength{\qrlift}{\dimexpr\dp\qrgrowbox-\dp\qrbasebox\relax}%
+  \makebox[\wd\qrbasebox][l]{%
+    \rlap{\smash{\raisebox{\qrlift}{\usebox{\qrgrowbox}}}}%
+    \phantom{\usebox{\qrbasebox}}}}
+
 % Takeaway box: thin green rule, wash fill, mono uppercase label.
 \newtcolorbox{takeaway}{%
   enhanced, colback=ncwash, colframe=ncgreen,
@@ -164,8 +177,9 @@
         {\color{ncink}\bfseries\fontsize{62}{70}\selectfont
           Spatial Atlas: Compute-Grounded Reasoning for Spatial-Aware Research Agent Benchmarks}\par
         \vspace{0.30cm}
-        {\color{ncinktwo}\fontsize{34}{40}\selectfont
-          From computable evidence to adaptive spatial actions}\par
+        {\color{ncinktwo}\fontsize{40}{46}\selectfont
+          Typed scene graphs compute relations before generation.
+          Stateful actions keep every spatial answer traceable and open to revision.}\par
         \vspace{0.32cm}
         {\color{ncink}\large Arun Sharma
           \quad\textcolor{nclinetwo}{$|$}\quad
@@ -175,6 +189,18 @@
           University of Minnesota, Twin Cities}\par
       \end{minipage}
     \end{center}
+    \begin{tikzpicture}[remember picture,overlay]
+      \node[anchor=west,inner sep=0]
+        at ([xshift=2.0cm,yshift=-4.6cm]current page.north west)
+        {\includegraphics[height=5.2cm]{assets/umn_seal.pdf}};
+      \node[anchor=west,inner sep=0]
+        at ([xshift=8.0cm,yshift=-4.6cm]current page.north west)
+        {\includegraphics[width=5.5cm]{assets/nvidia_logo.pdf}};
+      \node[anchor=east,inner sep=0]
+        at ([xshift=-2.0cm,yshift=-4.6cm]current page.north east)
+        {\includegraphics[width=14.5cm,trim=22bp 22bp 22bp 36bp,clip]
+          {assets/berkeley_rdi.png}};
+    \end{tikzpicture}%
     \vspace{0.24cm}
   \end{beamercolorbox}
   \begin{beamercolorbox}[wd=\paperwidth,ht=0.30cm,dp=0cm]{background canvas}
@@ -187,19 +213,27 @@
   \begin{beamercolorbox}[wd=\paperwidth,ht=0.16cm,dp=0cm]{background canvas}
     \hspace*{0pt}\textcolor{ncline}{\rule{\paperwidth}{0.16cm}}
   \end{beamercolorbox}
-  \begin{beamercolorbox}[wd=\paperwidth,sep=0.45cm,center]{background canvas}
-    {\color{ncmuted}\small
-      Spatial Atlas results: Sharma 2026, arXiv:2604.12102v2
-      \quad\textcolor{nclinetwo}{$|$}\quad
-      SpatialClaw: NVIDIA Research, Cho et al. 2026
-      \quad\textcolor{nclinetwo}{$|$}\quad
-      Berkeley RDI Poster Session, 2026
-      \quad\textcolor{nclinetwo}{$|$}\quad
-      \texttt{arunshar@umn.edu}
-      \quad\textcolor{nclinetwo}{$|$}\quad
-      \texttt{github.com/arunshar/spatial-atlas}}
+  \begin{beamercolorbox}[wd=\paperwidth,sep=0.20cm,center]{background canvas}
+    \begin{minipage}{0.965\paperwidth}
+      \centering
+      {\color{ncmuted}\fontsize{17}{20}\selectfont
+        Sharma, Arun. ``Spatial Atlas: Compute-Grounded Reasoning for
+        Spatial-Aware Research Agent Benchmarks.''
+        \textit{arXiv preprint arXiv:2604.12102} (2026).\par
+        \vspace{0.06cm}
+        Cho, Seokju, Ryo Hachiuma, Abhishek Badki, Hang Su, Byung-Kwan Lee,
+        Chan Hee Song, Sifei Liu et al. ``SpatialClaw: Rethinking Action
+        Interface for Agentic Spatial Reasoning.''
+        \textit{arXiv preprint arXiv:2606.13673} (2026).\par
+        \vspace{0.08cm}
+        Berkeley RDI Poster Session, 2026
+        \quad\textcolor{nclinetwo}{$|$}\quad
+        \texttt{arunshar@umn.edu}
+        \quad\textcolor{nclinetwo}{$|$}\quad
+        \texttt{github.com/arunshar/spatial-atlas}}
+    \end{minipage}
   \end{beamercolorbox}
-  \vspace{0.3cm}
+  \vspace{0.12cm}
 }
 
 \title{Spatial Atlas}
@@ -444,37 +478,37 @@
       \stp{13} & \textbf{end for}\\
       \stp{14} & \textbf{return} $a_1$
     \end{tabular}
-  \end{minipage}\hspace{0.015\linewidth}%
+  \end{minipage}\hspace{0pt}%
   \begin{minipage}[t]{0.31\linewidth}
-    \vspace{0.18cm}
+    \vspace{0.50cm}
     \centering
     \begin{minipage}[t]{0.48\linewidth}
       \centering
-      {\color{black}\qrcode[height=4.8cm,level=Q]{https://github.com/arunshar/spatial-atlas}}
+      {\color{black}\anchoredqr{https://github.com/arunshar/spatial-atlas}}
       \par\vspace{0.12cm}
       {\ttfamily\scriptsize\color{ncgreendark}GitHub\\arunshar/\\spatial-atlas}
     \end{minipage}\hfill
     \begin{minipage}[t]{0.48\linewidth}
       \centering
-      {\color{black}\qrcode[height=4.8cm,level=Q]{https://huggingface.co/spaces/Arun0808/spatial-atlas}}
+      {\color{black}\anchoredqr{https://huggingface.co/spaces/Arun0808/spatial-atlas}}
       \par\vspace{0.12cm}
       {\ttfamily\scriptsize\color{ncgreendark}Hugging Face\\Arun0808/\\spatial-atlas}
     \end{minipage}
-    \par\vspace{0.30cm}
+    \par\vspace{0.55cm}
     \begin{minipage}[t]{0.48\linewidth}
       \centering
-      {\color{black}\qrcode[height=4.8cm,level=Q]{https://arxiv.org/abs/2604.12102v2}}
+      {\color{black}\anchoredqr{https://arxiv.org/abs/2604.12102v2}}
       \par\vspace{0.12cm}
       {\ttfamily\scriptsize\color{ncgreendark}arXiv v2\\2604.12102v2}
     \end{minipage}\hfill
     \begin{minipage}[t]{0.48\linewidth}
       \centering
-      {\color{black}\qrcode[height=4.8cm,level=Q]{https://raw.githubusercontent.com/arunshar/spatial-atlas/main/poster/spatial_atlas_poster.pdf}}
+      {\color{black}\anchoredqr{https://raw.githubusercontent.com/arunshar/spatial-atlas/main/poster/spatial_atlas_poster.pdf}}
       \par\vspace{0.12cm}
       {\ttfamily\scriptsize\color{ncgreendark}Poster PDF\\spatial-atlas/\\poster}
     \end{minipage}
   \end{minipage}
-  \par\vspace{0.02cm}
+  \par\vspace{-0.55cm}
 
   \begin{possection}{4.}{Evaluation}
     \fontsize{31}{33}\selectfont
