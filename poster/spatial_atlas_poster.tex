@@ -142,18 +142,14 @@
 % Underscore-safe monospace for API names.
 \newcommand{\apicode}[1]{{\ttfamily\small #1}}
 
-% QR codes grow from their lower-left corner so the 2x2 matrix keeps its
-% established anchors while using more of the available algorithm-side space.
-\newsavebox{\qrbasebox}
-\newsavebox{\qrgrowbox}
-\newlength{\qrlift}
-\newcommand{\anchoredqr}[1]{%
-  \sbox{\qrbasebox}{\qrcode[height=4.8cm,level=Q]{#1}}%
-  \sbox{\qrgrowbox}{\qrcode[height=5.2cm,level=Q]{#1}}%
-  \setlength{\qrlift}{\dimexpr\dp\qrgrowbox-\dp\qrbasebox\relax}%
-  \makebox[\wd\qrbasebox][l]{%
-    \rlap{\smash{\raisebox{\qrlift}{\usebox{\qrgrowbox}}}}%
-    \phantom{\usebox{\qrbasebox}}}}
+% Each QR receives a camera-safe white quiet zone. The padding is slightly
+% wider than four modules for the densest code in the matrix.
+\newcommand{\quietqr}[1]{%
+  \begingroup
+  \setlength{\fboxsep}{0.45cm}%
+  \setlength{\fboxrule}{0pt}%
+  \colorbox{white}{\qrcode[height=5.2cm,level=Q]{#1}}%
+  \endgroup}
 
 % Takeaway box: thin green rule, wash fill, mono uppercase label.
 \newtcolorbox{takeaway}{%
@@ -208,30 +204,26 @@
   \end{beamercolorbox}
 }
 
-% FOOTER. Attribution of NVIDIA's SpatialClaw sits here, prominently.
+% FOOTER. Single-line contact and profile index.
 \setbeamertemplate{footline}{%
   \begin{beamercolorbox}[wd=\paperwidth,ht=0.16cm,dp=0cm]{background canvas}
     \hspace*{0pt}\textcolor{ncline}{\rule{\paperwidth}{0.16cm}}
   \end{beamercolorbox}
-  \begin{beamercolorbox}[wd=\paperwidth,sep=0.20cm,center]{background canvas}
-    \begin{minipage}{0.965\paperwidth}
-      \centering
-      {\color{ncmuted}\fontsize{17}{20}\selectfont
-        Sharma, Arun. ``Spatial Atlas: Compute-Grounded Reasoning for
-        Spatial-Aware Research Agent Benchmarks.''
-        \textit{arXiv preprint arXiv:2604.12102} (2026).\par
-        \vspace{0.06cm}
-        Cho, Seokju, Ryo Hachiuma, Abhishek Badki, Hang Su, Byung-Kwan Lee,
-        Chan Hee Song, Sifei Liu et al. ``SpatialClaw: Rethinking Action
-        Interface for Agentic Spatial Reasoning.''
-        \textit{arXiv preprint arXiv:2606.13673} (2026).\par
-        \vspace{0.08cm}
-        Berkeley RDI Poster Session, 2026
-        \quad\textcolor{nclinetwo}{$|$}\quad
-        \texttt{arunshar@umn.edu}
-        \quad\textcolor{nclinetwo}{$|$}\quad
-        \texttt{github.com/arunshar/spatial-atlas}}
-    \end{minipage}
+  \begin{beamercolorbox}[wd=\paperwidth,sep=0.28cm,center]{background canvas}
+    {\color{ncmuted}\fontsize{18}{22}\selectfont
+      \texttt{+1 612-946-5123}
+      \quad\textcolor{nclinetwo}{$|$}\quad
+      \texttt{arunshar@umn.edu}
+      \quad\textcolor{nclinetwo}{$|$}\quad
+      \texttt{https://www.linkedin.com/in/arun08sharma/}
+      \quad\textcolor{nclinetwo}{$|$}\quad
+      \texttt{https://arunshar.com/}
+      \quad\textcolor{nclinetwo}{$|$}\quad
+      \texttt{https://github.com/arunshar}
+      \quad\textcolor{nclinetwo}{$|$}\quad
+      \texttt{https://huggingface.co/Arun0808}
+      \quad\textcolor{nclinetwo}{$|$}\quad
+      \texttt{https://x.com/arunshar08}}
   \end{beamercolorbox}
   \vspace{0.12cm}
 }
@@ -478,37 +470,37 @@
       \stp{13} & \textbf{end for}\\
       \stp{14} & \textbf{return} $a_1$
     \end{tabular}
-  \end{minipage}\hspace{0pt}%
-  \begin{minipage}[t]{0.31\linewidth}
+  \end{minipage}\hspace{-0.090\linewidth}%
+  \begin{minipage}[t]{0.40\linewidth}
     \vspace{0.50cm}
-    \centering
-    \begin{minipage}[t]{0.48\linewidth}
+    \raggedright
+    \begin{minipage}[t]{6.10cm}
       \centering
-      {\color{black}\anchoredqr{https://github.com/arunshar/spatial-atlas}}
+      {\color{black}\quietqr{https://github.com/arunshar/spatial-atlas}}
       \par\vspace{0.12cm}
       {\ttfamily\scriptsize\color{ncgreendark}GitHub\\arunshar/\\spatial-atlas}
-    \end{minipage}\hfill
-    \begin{minipage}[t]{0.48\linewidth}
+    \end{minipage}\hspace{0.45cm}%
+    \begin{minipage}[t]{6.10cm}
       \centering
-      {\color{black}\anchoredqr{https://huggingface.co/spaces/Arun0808/spatial-atlas}}
+      {\color{black}\quietqr{https://huggingface.co/spaces/Arun0808/spatial-atlas}}
       \par\vspace{0.12cm}
       {\ttfamily\scriptsize\color{ncgreendark}Hugging Face\\Arun0808/\\spatial-atlas}
     \end{minipage}
     \par\vspace{0.55cm}
-    \begin{minipage}[t]{0.48\linewidth}
+    \begin{minipage}[t]{6.10cm}
       \centering
-      {\color{black}\anchoredqr{https://arxiv.org/abs/2604.12102v2}}
+      {\color{black}\quietqr{https://arxiv.org/abs/2604.12102v2}}
       \par\vspace{0.12cm}
       {\ttfamily\scriptsize\color{ncgreendark}arXiv v2\\2604.12102v2}
-    \end{minipage}\hfill
-    \begin{minipage}[t]{0.48\linewidth}
+    \end{minipage}\hspace{0.45cm}%
+    \begin{minipage}[t]{6.10cm}
       \centering
-      {\color{black}\anchoredqr{https://raw.githubusercontent.com/arunshar/spatial-atlas/main/poster/spatial_atlas_poster.pdf}}
+      {\color{black}\quietqr{https://raw.githubusercontent.com/arunshar/spatial-atlas/main/poster/spatial_atlas_poster.pdf}}
       \par\vspace{0.12cm}
       {\ttfamily\scriptsize\color{ncgreendark}Poster PDF\\spatial-atlas/\\poster}
     \end{minipage}
   \end{minipage}
-  \par\vspace{-0.55cm}
+  \par\vspace{0.15cm}
 
   \begin{possection}{4.}{Evaluation}
     \fontsize{31}{33}\selectfont
