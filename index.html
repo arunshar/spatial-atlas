@@ -1,0 +1,2324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0b5d46">
+  <meta name="description" content="Offline mobile schedule for the Spatial Atlas poster presentation at the Berkeley RDI Agentic AI Summit on Saturday, August 1, 2026.">
+  <title>Spatial Atlas Summit Schedule</title>
+  <style>
+    :root {
+      --bg: #f3f7f5;
+      --surface: #ffffff;
+      --surface-2: #edf5f1;
+      --text: #10201a;
+      --muted: #587067;
+      --border: #cfe0d8;
+      --green: #0b5d46;
+      --green-2: #13795b;
+      --green-soft: #dff2e9;
+      --blue: #174ea6;
+      --blue-soft: #e8f0fe;
+      --amber: #8a4b00;
+      --amber-soft: #fff1d6;
+      --red: #9f2d24;
+      --red-soft: #fde9e7;
+      --shadow: 0 12px 30px rgba(18, 57, 44, 0.10);
+      --sidebar: 284px;
+      --topbar: 68px;
+      --radius: 18px;
+      --max: 1060px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0c1512;
+        --surface: #121f1a;
+        --surface-2: #182a23;
+        --text: #edf7f2;
+        --muted: #a8c0b6;
+        --border: #29483c;
+        --green: #5bd1a4;
+        --green-2: #76ddb7;
+        --green-soft: #173a2e;
+        --blue: #9abaff;
+        --blue-soft: #18305a;
+        --amber: #ffd08a;
+        --amber-soft: #4a3212;
+        --red: #ffaaa2;
+        --red-soft: #4a211e;
+        --shadow: 0 14px 36px rgba(0, 0, 0, 0.30);
+      }
+    }
+
+    html[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f3f7f5;
+      --surface: #ffffff;
+      --surface-2: #edf5f1;
+      --text: #10201a;
+      --muted: #587067;
+      --border: #cfe0d8;
+      --green: #0b5d46;
+      --green-2: #13795b;
+      --green-soft: #dff2e9;
+      --blue: #174ea6;
+      --blue-soft: #e8f0fe;
+      --amber: #8a4b00;
+      --amber-soft: #fff1d6;
+      --red: #9f2d24;
+      --red-soft: #fde9e7;
+      --shadow: 0 12px 30px rgba(18, 57, 44, 0.10);
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0c1512;
+      --surface: #121f1a;
+      --surface-2: #182a23;
+      --text: #edf7f2;
+      --muted: #a8c0b6;
+      --border: #29483c;
+      --green: #5bd1a4;
+      --green-2: #76ddb7;
+      --green-soft: #173a2e;
+      --blue: #9abaff;
+      --blue-soft: #18305a;
+      --amber: #ffd08a;
+      --amber-soft: #4a3212;
+      --red: #ffaaa2;
+      --red-soft: #4a211e;
+      --shadow: 0 14px 36px rgba(0, 0, 0, 0.30);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 90% 0%, color-mix(in srgb, var(--green-soft) 70%, transparent), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+      text-rendering: optimizeLegibility;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a {
+      color: var(--blue);
+      text-underline-offset: 0.18em;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--blue) 58%, transparent);
+      outline-offset: 3px;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      z-index: 1000;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text);
+      transform: translateY(-160%);
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 80;
+      height: var(--topbar);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding:
+        max(10px, env(safe-area-inset-top))
+        max(14px, env(safe-area-inset-right))
+        10px
+        max(14px, env(safe-area-inset-left));
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
+      backdrop-filter: blur(18px);
+    }
+
+    .menu-button,
+    .icon-button {
+      min-width: 44px;
+      min-height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .menu-button {
+      display: none;
+      font-size: 1.3rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      border-radius: 14px;
+      background: var(--green);
+      color: var(--surface);
+      font-weight: 850;
+      letter-spacing: -0.04em;
+      box-shadow: var(--shadow);
+    }
+
+    html[data-theme="dark"] .brand-mark {
+      color: #082117;
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .brand-title {
+      overflow: hidden;
+      color: var(--text);
+      font-size: 0.98rem;
+      font-weight: 800;
+      line-height: 1.15;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand-subtitle {
+      overflow: hidden;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .topbar-spacer {
+      flex: 1;
+    }
+
+    .live-clock {
+      min-width: 132px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-align: right;
+    }
+
+    .live-clock strong {
+      display: block;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    .sidebar {
+      position: fixed;
+      z-index: 70;
+      inset: var(--topbar) auto 0 0;
+      width: var(--sidebar);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 18px 14px 32px;
+      border-right: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+    }
+
+    .nav-label {
+      margin: 18px 12px 8px;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .nav-label:first-child {
+      margin-top: 0;
+    }
+
+    .nav-button {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      align-items: center;
+      width: 100%;
+      gap: 9px;
+      margin: 3px 0;
+      padding: 11px 12px;
+      border: 1px solid transparent;
+      border-radius: 13px;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .nav-button:hover {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .nav-button[aria-current="page"] {
+      border-color: color-mix(in srgb, var(--green) 25%, var(--border));
+      background: var(--green-soft);
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .nav-index {
+      font-size: 0.75rem;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+    }
+
+    .nav-badge {
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.67rem;
+    }
+
+    .sidebar-note {
+      margin: 22px 8px 0;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 0.77rem;
+    }
+
+    .sidebar-note strong {
+      color: var(--text);
+    }
+
+    .scrim {
+      position: fixed;
+      z-index: 60;
+      inset: var(--topbar) 0 0 0;
+      display: none;
+      background: rgba(0, 0, 0, 0.46);
+    }
+
+    .main {
+      min-height: 100vh;
+      margin-left: var(--sidebar);
+      padding:
+        calc(var(--topbar) + 30px)
+        max(22px, env(safe-area-inset-right))
+        calc(64px + env(safe-area-inset-bottom))
+        max(22px, env(safe-area-inset-left));
+    }
+
+    .page {
+      width: min(100%, var(--max));
+      margin: 0 auto;
+      animation: page-in 180ms ease-out;
+    }
+
+    .page[hidden] {
+      display: none;
+    }
+
+    @keyframes page-in {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .eyebrow {
+      margin-bottom: 7px;
+      color: var(--green);
+      font-size: 0.76rem;
+      font-weight: 850;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.13;
+      letter-spacing: -0.025em;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.65rem);
+    }
+
+    h2 {
+      margin: 38px 0 14px;
+      font-size: clamp(1.45rem, 3vw, 2.05rem);
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1.08rem;
+    }
+
+    .lede {
+      max-width: 760px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.16rem);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 22px 0 28px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      gap: 8px;
+      padding: 10px 15px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 750;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button.primary {
+      border-color: var(--green);
+      background: var(--green);
+      color: #ffffff;
+    }
+
+    html[data-theme="dark"] .button.primary {
+      color: #082117;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(15, 70, 50, 0.12);
+    }
+
+    .alert {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 13px;
+      margin: 20px 0;
+      padding: 16px;
+      border: 1px solid color-mix(in srgb, var(--red) 30%, var(--border));
+      border-radius: var(--radius);
+      background: var(--red-soft);
+    }
+
+    .alert.amber {
+      border-color: color-mix(in srgb, var(--amber) 30%, var(--border));
+      background: var(--amber-soft);
+    }
+
+    .alert.green {
+      border-color: color-mix(in srgb, var(--green) 30%, var(--border));
+      background: var(--green-soft);
+    }
+
+    .alert-icon {
+      display: grid;
+      place-items: center;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--red);
+      font-weight: 900;
+    }
+
+    .alert.amber .alert-icon {
+      color: var(--amber);
+    }
+
+    .alert.green .alert-icon {
+      color: var(--green);
+    }
+
+    .alert strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .alert p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      grid-column: span 4;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--surface) 95%, transparent);
+      box-shadow: 0 7px 22px rgba(15, 70, 50, 0.06);
+    }
+
+    .card.span-6 {
+      grid-column: span 6;
+    }
+
+    .card.span-8 {
+      grid-column: span 8;
+    }
+
+    .card.span-12 {
+      grid-column: span 12;
+    }
+
+    .card-kicker {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 850;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .metric {
+      color: var(--text);
+      font-size: clamp(1.45rem, 4vw, 2.35rem);
+      font-weight: 880;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .card p {
+      margin: 9px 0 0;
+      color: var(--muted);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 0.73rem;
+      font-weight: 750;
+    }
+
+    .pill.good {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .pill.warn {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .pill.bad {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .next-event {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .next-time {
+      min-width: 86px;
+      padding: 12px 10px;
+      border-radius: 14px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 1.1rem;
+      font-weight: 850;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .next-event h3 {
+      margin-bottom: 4px;
+    }
+
+    .next-event p {
+      margin: 0;
+    }
+
+    .timeline {
+      position: relative;
+      margin-top: 18px;
+    }
+
+    .timeline::before {
+      position: absolute;
+      top: 18px;
+      bottom: 18px;
+      left: 17px;
+      width: 2px;
+      background: var(--border);
+      content: "";
+    }
+
+    .timeline-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr);
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .timeline-dot {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 850;
+    }
+
+    .timeline-content {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: var(--surface);
+    }
+
+    .timeline-time {
+      margin-bottom: 3px;
+      color: var(--green);
+      font-size: 0.78rem;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timeline-content p {
+      margin: 5px 0 0;
+      color: var(--muted);
+    }
+
+    .timeline-item.is-past {
+      opacity: 0.58;
+    }
+
+    .timeline-item.is-current .timeline-dot,
+    .timeline-item.is-next .timeline-dot {
+      border-color: var(--green);
+      background: var(--green);
+      color: #ffffff;
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--green) 13%, transparent);
+    }
+
+    html[data-theme="dark"] .timeline-item.is-current .timeline-dot,
+    html[data-theme="dark"] .timeline-item.is-next .timeline-dot {
+      color: #082117;
+    }
+
+    .timeline-item.is-current .timeline-content,
+    .timeline-item.is-next .timeline-content {
+      border-color: color-mix(in srgb, var(--green) 60%, var(--border));
+    }
+
+    .schedule-list {
+      display: grid;
+      gap: 11px;
+      margin-top: 18px;
+    }
+
+    .schedule-row {
+      display: grid;
+      grid-template-columns: 100px minmax(0, 1fr);
+      gap: 15px;
+      padding: 15px 16px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: var(--surface);
+    }
+
+    .schedule-row.is-past {
+      opacity: 0.58;
+    }
+
+    .schedule-row.is-next {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 12%, transparent);
+    }
+
+    .schedule-time {
+      color: var(--green);
+      font-weight: 860;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .schedule-title {
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .schedule-meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .schedule-note {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-left: 3px solid var(--green);
+      border-radius: 0 8px 8px 0;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .priority-list {
+      display: grid;
+      gap: 13px;
+      margin-top: 20px;
+      counter-reset: priorities;
+    }
+
+    .priority-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 14px;
+      padding: 17px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      counter-increment: priorities;
+    }
+
+    .priority-number {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 15px;
+      background: var(--surface-2);
+      color: var(--green);
+      font-size: 1.1rem;
+      font-weight: 880;
+    }
+
+    .priority-number::before {
+      content: counter(priorities);
+    }
+
+    .priority-card h3 {
+      margin-bottom: 5px;
+    }
+
+    .priority-card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .priority-card .pill-row {
+      margin-top: 10px;
+    }
+
+    .question-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+      margin-top: 18px;
+    }
+
+    .question-card {
+      padding: 17px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .question-card h3 {
+      color: var(--green);
+    }
+
+    .question-card p {
+      margin: 9px 0 0;
+      color: var(--text);
+    }
+
+    .transit-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .transit-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .transit-card h3 {
+      margin-bottom: 12px;
+    }
+
+    .train {
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr) 74px;
+      gap: 8px;
+      align-items: center;
+      padding: 11px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .train:first-of-type {
+      border-top: 0;
+    }
+
+    .train-time {
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .train-line {
+      position: relative;
+      height: 2px;
+      background: var(--green);
+    }
+
+    .train-line::before,
+    .train-line::after {
+      position: absolute;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border: 2px solid var(--green);
+      border-radius: 50%;
+      background: var(--surface);
+      content: "";
+      transform: translateY(-50%);
+    }
+
+    .train-line::before {
+      left: 0;
+    }
+
+    .train-line::after {
+      right: 0;
+    }
+
+    .train.recommended {
+      margin: 2px -10px;
+      padding: 11px 10px;
+      border: 1px solid color-mix(in srgb, var(--green) 45%, var(--border));
+      border-radius: 12px;
+      background: var(--green-soft);
+    }
+
+    .train-caption {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 0.77rem;
+    }
+
+    .checklist-group {
+      margin-top: 20px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .checklist-group h3 {
+      margin-bottom: 12px;
+    }
+
+    .check-row {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 10px 0;
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .check-row:first-of-type {
+      border-top: 0;
+    }
+
+    .check-row input {
+      width: 20px;
+      height: 20px;
+      margin: 2px 0 0;
+      accent-color: var(--green);
+    }
+
+    .check-row span {
+      color: var(--text);
+    }
+
+    .check-row input:checked + span {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .progress-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin: 18px 0;
+    }
+
+    .progress-track {
+      height: 12px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: var(--surface-2);
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--green);
+      transition: width 180ms ease;
+    }
+
+    .progress-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .source-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .source-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 750;
+      text-decoration: none;
+    }
+
+    .source-link span:last-child {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 650;
+    }
+
+    .term {
+      padding: 0;
+      border: 0;
+      border-bottom: 1px dotted currentColor;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: help;
+    }
+
+    .popover {
+      position: fixed;
+      z-index: 200;
+      right: 18px;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      width: min(390px, calc(100vw - 36px));
+      padding: 17px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .popover[hidden] {
+      display: none;
+    }
+
+    .popover-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .popover h3 {
+      color: var(--green);
+    }
+
+    .popover p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 240;
+      left: 50%;
+      bottom: calc(20px + env(safe-area-inset-bottom));
+      max-width: calc(100vw - 40px);
+      padding: 11px 15px;
+      border-radius: 12px;
+      background: var(--text);
+      color: var(--surface);
+      font-weight: 750;
+      box-shadow: var(--shadow);
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .toast.show {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    .mobile-tabs {
+      display: none;
+    }
+
+    .fine-print {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .kbd {
+      display: inline-flex;
+      min-width: 24px;
+      height: 24px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
+    @media (max-width: 980px) {
+      .menu-button {
+        display: inline-grid;
+        place-items: center;
+      }
+
+      .sidebar {
+        transform: translateX(-105%);
+        transition: transform 190ms ease;
+        box-shadow: var(--shadow);
+      }
+
+      body.nav-open .sidebar {
+        transform: translateX(0);
+      }
+
+      body.nav-open .scrim {
+        display: block;
+      }
+
+      .main {
+        margin-left: 0;
+      }
+
+      .card {
+        grid-column: span 6;
+      }
+
+      .card.span-8 {
+        grid-column: span 12;
+      }
+    }
+
+    @media (max-width: 680px) {
+      :root {
+        --topbar: 64px;
+      }
+
+      .topbar {
+        gap: 8px;
+      }
+
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+      }
+
+      .brand-title {
+        font-size: 0.9rem;
+      }
+
+      .brand-subtitle {
+        font-size: 0.69rem;
+      }
+
+      .live-clock {
+        display: none;
+      }
+
+      .main {
+        padding:
+          calc(var(--topbar) + 23px)
+          14px
+          calc(92px + env(safe-area-inset-bottom));
+      }
+
+      .card,
+      .card.span-6,
+      .card.span-8,
+      .card.span-12 {
+        grid-column: span 12;
+      }
+
+      .schedule-row {
+        grid-template-columns: 82px minmax(0, 1fr);
+        gap: 11px;
+        padding: 13px;
+      }
+
+      .schedule-time {
+        font-size: 0.88rem;
+      }
+
+      .question-list,
+      .transit-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .priority-card {
+        grid-template-columns: 40px minmax(0, 1fr);
+        padding: 14px;
+      }
+
+      .priority-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+      }
+
+      .mobile-tabs {
+        position: fixed;
+        z-index: 65;
+        right: 10px;
+        bottom: calc(9px + env(safe-area-inset-bottom));
+        left: 10px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+        padding: 6px;
+        border: 1px solid var(--border);
+        border-radius: 17px;
+        background: color-mix(in srgb, var(--surface) 92%, transparent);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .mobile-tab {
+        display: grid;
+        min-height: 48px;
+        place-items: center;
+        padding: 5px 3px;
+        border: 0;
+        border-radius: 11px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 0.67rem;
+        font-weight: 780;
+        cursor: pointer;
+      }
+
+      .mobile-tab[aria-current="page"] {
+        background: var(--green-soft);
+        color: var(--green);
+      }
+
+      .train {
+        grid-template-columns: 66px minmax(0, 1fr) 66px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+
+    @media print {
+      .topbar,
+      .sidebar,
+      .mobile-tabs,
+      .hero-actions,
+      .popover,
+      .toast,
+      .scrim {
+        display: none !important;
+      }
+
+      body {
+        background: #ffffff;
+        color: #000000;
+      }
+
+      .main {
+        margin: 0;
+        padding: 0;
+      }
+
+      .page {
+        display: block !important;
+        max-width: none;
+        break-after: page;
+      }
+
+      .card,
+      .schedule-row,
+      .priority-card,
+      .question-card,
+      .transit-card,
+      .checklist-group {
+        break-inside: avoid;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to schedule</a>
+
+  <header class="topbar">
+    <button class="menu-button" id="menuButton" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+    <div class="brand" aria-label="Spatial Atlas Summit Schedule">
+      <div class="brand-mark" aria-hidden="true">SA</div>
+      <div class="brand-copy">
+        <div class="brand-title">Spatial Atlas Summit Guide</div>
+        <div class="brand-subtitle">Saturday, August 1 · Berkeley</div>
+      </div>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="live-clock" id="liveClock" aria-live="polite"></div>
+    <button class="icon-button" id="themeButton" type="button" aria-label="Change theme" title="Theme: automatic">◐</button>
+  </header>
+
+  <div class="scrim" id="scrim" aria-hidden="true"></div>
+
+  <aside class="sidebar" id="sidebar" aria-label="Guide navigation">
+    <div class="nav-label">Your day</div>
+    <button class="nav-button" type="button" data-page="dashboard">
+      <span class="nav-index">01</span><span>Dashboard</span><span class="nav-badge">Now</span>
+    </button>
+    <button class="nav-button" type="button" data-page="timeline">
+      <span class="nav-index">02</span><span>My timeline</span><span></span>
+    </button>
+    <button class="nav-button" type="button" data-page="priorities">
+      <span class="nav-index">03</span><span>Talk priorities</span><span></span>
+    </button>
+
+    <div class="nav-label">Stages</div>
+    <button class="nav-button" type="button" data-page="plenary">
+      <span class="nav-index">04</span><span>Plenary</span><span></span>
+    </button>
+    <button class="nav-button" type="button" data-page="atlas">
+      <span class="nav-index">05</span><span>Atlas</span><span class="nav-badge">Top</span>
+    </button>
+    <button class="nav-button" type="button" data-page="nexus">
+      <span class="nav-index">06</span><span>Nexus</span><span class="nav-badge">Eval</span>
+    </button>
+    <button class="nav-button" type="button" data-page="compass">
+      <span class="nav-index">07</span><span>Compass</span><span></span>
+    </button>
+
+    <div class="nav-label">Field guide</div>
+    <button class="nav-button" type="button" data-page="followups">
+      <span class="nav-index">08</span><span>Speaker follow-ups</span><span></span>
+    </button>
+    <button class="nav-button" type="button" data-page="transit">
+      <span class="nav-index">09</span><span>Transit</span><span class="nav-badge">BART</span>
+    </button>
+    <button class="nav-button" type="button" data-page="checklist">
+      <span class="nav-index">10</span><span>Checklist</span><span id="navProgress" class="nav-badge">0%</span>
+    </button>
+    <button class="nav-button" type="button" data-page="sources">
+      <span class="nav-index">11</span><span>Sources and limits</span><span></span>
+    </button>
+
+    <div class="sidebar-note">
+      <strong>Keyboard</strong><br>
+      Use <span class="kbd">↑</span> and <span class="kbd">↓</span> to move between pages. Press <span class="kbd">Esc</span> to close the mobile menu.
+    </div>
+  </aside>
+
+  <main class="main" id="main" tabindex="-1">
+    <section class="page" id="page-dashboard" data-page-id="dashboard">
+      <div class="eyebrow">Saturday field guide</div>
+      <h1>Rest protected. Poster ready. Home by 7.</h1>
+      <p class="lede">An energy-first, mobile schedule for the Spatial Atlas poster session, the four Summit stages, speaker follow-ups, and the Union City BART plan.</p>
+
+      <div class="hero-actions">
+        <button class="button primary" type="button" data-go="timeline">Open my timeline</button>
+        <button class="button" type="button" id="copyPlanButton">Copy quick plan</button>
+        <button class="button" type="button" id="calendarButton">Download calendar</button>
+        <a class="button" href="SATURDAY_SCHEDULE.md" download>Download Markdown</a>
+      </div>
+
+      <div class="alert">
+        <div class="alert-icon" aria-hidden="true">!</div>
+        <div>
+          <strong>Poster duty and the 7:00 PM home target conflict.</strong>
+          <p>Staying through 6:00 PM does not fit the BART return. Target the 5:36 PM train only after obtaining early-departure approval or confirmed coverage.</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <article class="card span-6">
+          <div class="card-kicker">Next milestone</div>
+          <div class="next-event" id="nextEvent">
+            <div class="next-time">9:23</div>
+            <div>
+              <h3>Union City to Berkeley</h3>
+              <p>Direct Route 3. Scheduled arrival at 10:06 AM.</p>
+            </div>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-kicker">Poster</div>
+          <div class="metric">11 to 6</div>
+          <p>MLK 1. Check in at MLK East. Assemble at LSP picnic tables.</p>
+        </article>
+        <article class="card">
+          <div class="card-kicker">Return target</div>
+          <div class="metric">5:36</div>
+          <p>Arrives Union City at 6:22 PM, leaving 38 scheduled minutes for the last mile.</p>
+        </article>
+        <article class="card span-6">
+          <div class="card-kicker">Best feasible talk with coverage</div>
+          <h3>Atlas: Robotics and World Models</h3>
+          <p>1:30 to 2:30 PM. The strongest direct match for spatial perception, world models, and trustworthy physical reasoning.</p>
+          <div class="pill-row">
+            <span class="pill good">Direct research fit</span>
+            <span class="pill warn">Coverage required</span>
+          </div>
+        </article>
+        <article class="card span-6">
+          <div class="card-kicker">Best content match</div>
+          <h3>Nexus: Future of Agent Evaluation</h3>
+          <p>5:00 to 6:00 PM. Best fit for the answer-only evaluation critique and the planned <button class="term" type="button" data-term="Schema-matched control" data-definition="A counterfactual evaluation in which schema, formatting, and prompt structure remain fixed while geometric correctness changes.">schema-matched control</button>.</p>
+          <div class="pill-row">
+            <span class="pill good">Highest intellectual value</span>
+            <span class="pill bad">Not safely attendable</span>
+          </div>
+        </article>
+      </div>
+
+      <div class="alert amber">
+        <div class="alert-icon" aria-hidden="true">?</div>
+        <div>
+          <strong>Physical stage locations remain unknown.</strong>
+          <p>The public program names Plenary, Atlas, Nexus, and Compass but does not publish their buildings or rooms. Confirm them in the attendee app or on-site signage before attempting any transition.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-timeline" data-page-id="timeline" hidden>
+      <div class="eyebrow">Energy-first presenter itinerary</div>
+      <h1>My Saturday timeline</h1>
+      <p class="lede">Exact train times are marked as scheduled. Walking, setup, and last-mile times are planning estimates.</p>
+
+      <div class="timeline" id="journeyTimeline">
+        <article class="timeline-item" data-journey-time="2026-08-01T09:10:00-07:00">
+          <div class="timeline-dot">1</div>
+          <div class="timeline-content">
+            <div class="timeline-time">9:10 AM · estimated target</div>
+            <h3>Reach Union City BART</h3>
+            <p>Open the saved Luma QR, check live advisories, and verify the train destination.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T09:23:00-07:00">
+          <div class="timeline-dot">2</div>
+          <div class="timeline-content">
+            <div class="timeline-time">9:23 AM · official schedule</div>
+            <h3>Depart Union City</h3>
+            <p>Platform 2, direct Route 3 toward OAK Airport and Richmond.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T10:06:00-07:00">
+          <div class="timeline-dot">3</div>
+          <div class="timeline-content">
+            <div class="timeline-time">10:06 AM · official schedule</div>
+            <h3>Arrive Downtown Berkeley</h3>
+            <p>Platform 1. Allow 15 to 20 estimated minutes to walk to MLK with the poster.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T10:21:00-07:00">
+          <div class="timeline-dot">4</div>
+          <div class="timeline-content">
+            <div class="timeline-time">Approximately 10:21 to 10:26 AM · estimate</div>
+            <h3>Reach MLK</h3>
+            <p>Check in at MLK East, then locate the LSP picnic tables and MLK 1.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T10:26:00-07:00">
+          <div class="timeline-dot">5</div>
+          <div class="timeline-content">
+            <div class="timeline-time">10:26 AM · planning target</div>
+            <h3>Assemble and mount</h3>
+            <p>Use the board, easel, clips, and blue tape provided by Berkeley RDI.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T10:50:00-07:00">
+          <div class="timeline-dot">6</div>
+          <div class="timeline-content">
+            <div class="timeline-time">10:50 AM · planning target</div>
+            <h3>Run the final poster check</h3>
+            <p>Test every QR code, photograph the mounted poster, hydrate, and reset before technical conversations.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T11:00:00-07:00">
+          <div class="timeline-dot">7</div>
+          <div class="timeline-content">
+            <div class="timeline-time">11:00 AM</div>
+            <h3>Poster presentation begins</h3>
+            <p>Stay at the poster unless the organizer approves an absence or a trusted person provides coverage.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T11:45:00-07:00">
+          <div class="timeline-dot">8</div>
+          <div class="timeline-content">
+            <div class="timeline-time">11:45 AM to 12:30 PM</div>
+            <h3>Protect the main networking window</h3>
+            <p>The four stages enter staggered lunch and poster periods. Invite priority speakers into the Spatial Atlas discussion.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T13:30:00-07:00">
+          <div class="timeline-dot">9</div>
+          <div class="timeline-content">
+            <div class="timeline-time">1:30 to 2:30 PM · optional</div>
+            <h3>Atlas Robotics and World Models</h3>
+            <p>Attend only with confirmed poster coverage. Otherwise remain at MLK 1 and follow up with the speakers later.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T17:00:00-07:00">
+          <div class="timeline-dot">10</div>
+          <div class="timeline-content">
+            <div class="timeline-time">5:00 PM · conditional</div>
+            <h3>Begin breakdown</h3>
+            <p>Do this only if Berkeley RDI approved early departure. Otherwise continue poster duty through 6:00 PM.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T17:10:00-07:00">
+          <div class="timeline-dot">11</div>
+          <div class="timeline-content">
+            <div class="timeline-time">5:10 PM · estimated target</div>
+            <h3>Leave MLK for BART</h3>
+            <p>The estimated walk is 15 to 20 minutes. Check the live departure before leaving.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T17:36:00-07:00">
+          <div class="timeline-dot">12</div>
+          <div class="timeline-content">
+            <div class="timeline-time">5:36 PM · official schedule</div>
+            <h3>Depart Downtown Berkeley</h3>
+            <p>Platform 2, direct Route 4 toward OAK Airport and Berryessa or North San Jose.</p>
+          </div>
+        </article>
+        <article class="timeline-item" data-journey-time="2026-08-01T18:22:00-07:00">
+          <div class="timeline-dot">13</div>
+          <div class="timeline-content">
+            <div class="timeline-time">6:22 PM · official schedule</div>
+            <h3>Arrive Union City</h3>
+            <p>Thirty-eight scheduled minutes remain for the final trip home if the train is on time.</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="alert amber">
+        <div class="alert-icon" aria-hidden="true">i</div>
+        <div>
+          <strong>Why the morning Plenary is skipped</strong>
+          <p>The poster is the primary obligation. The 9:23 AM train protects rest for sustained technical conversations while retaining approximately 34 to 39 estimated minutes at MLK before the session. Use the 9:03 AM train when a larger setup margin is more important.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-priorities" data-page-id="priorities" hidden>
+      <div class="eyebrow">Research-fit ranking</div>
+      <h1>Talk priorities</h1>
+      <p class="lede">Content value and attendance feasibility are deliberately separated. A high-value session may still be a follow-up target rather than a safe attendance target.</p>
+
+      <div class="priority-list">
+        <article class="priority-card">
+          <div class="priority-number"></div>
+          <div>
+            <h3>Nexus, 5:00 PM: Future of Agent Evaluation</h3>
+            <p>Best match for the answer-only evaluation critique and the planned schema-matched geometry corruption control.</p>
+            <div class="pill-row"><span class="pill good">Highest content fit</span><span class="pill bad">Final poster hour</span><span class="pill">No named speakers</span></div>
+          </div>
+        </article>
+        <article class="priority-card">
+          <div class="priority-number"></div>
+          <div>
+            <h3>Atlas, 1:30 to 2:30 PM: Robotics and World Models</h3>
+            <p>Peter Stone, Vincent Vanhoucke, Trevor Darrell, Manmohan Chandraker, and Bolei Zhou address physical autonomy, perception uncertainty, and world models.</p>
+            <div class="pill-row"><span class="pill good">Best feasible break</span><span class="pill warn">Coverage required</span></div>
+          </div>
+        </article>
+        <article class="priority-card">
+          <div class="priority-number"></div>
+          <div>
+            <h3>Nexus, 10:00 to 11:00 AM: AI for Science</h3>
+            <p>Connects the MLE-Bench branch, physical-world evidence, scientific agents, and the broader AI for Science research identity.</p>
+            <div class="pill-row"><span class="pill good">Strong identity fit</span><span class="pill bad">Setup conflict</span></div>
+          </div>
+        </article>
+        <article class="priority-card">
+          <div class="priority-number"></div>
+          <div>
+            <h3>Atlas, 4:30 PM: Frameworks and Developer Platforms</h3>
+            <p>Philip Rathle maps to typed scene state. Ranjan Sinha maps to evidence exchange and Agent-to-Agent interoperability.</p>
+            <div class="pill-row"><span class="pill good">Graph and protocol fit</span><span class="pill warn">Late-day conflict</span></div>
+          </div>
+        </article>
+        <article class="priority-card">
+          <div class="priority-number"></div>
+          <div>
+            <h3>Compass, 1:30 PM: Frameworks and Developer Platforms</h3>
+            <p>Nilou Salehi's executable reasoning structure closely matches <button class="term" type="button" data-term="Compute-grounded reasoning" data-definition="A workflow that resolves answerable subproblems through explicit computation over inspectable state before asking a language model to generate the final response.">compute-grounded reasoning</button>. Johann Schleier-Smith maps to persistent state.</p>
+            <div class="pill-row"><span class="pill good">Core method fit</span><span class="pill warn">Coverage required</span></div>
+          </div>
+        </article>
+        <article class="priority-card">
+          <div class="priority-number"></div>
+          <div>
+            <h3>Nexus, 3:45 PM: Secure Agentic AI</h3>
+            <p>Runtime trust, guardrails, certification, assurance, <button class="term" type="button" data-term="Attestation" data-definition="Evidence that a required execution step occurred in the approved environment and under the required policy before its output is trusted.">attestation</button>, and a post-kernel verifier.</p>
+            <div class="pill-row"><span class="pill good">Verifier fit</span><span class="pill warn">Coverage required</span></div>
+          </div>
+        </article>
+        <article class="priority-card">
+          <div class="priority-number"></div>
+          <div>
+            <h3>Compass, 3:20 PM: Foundational Capabilities</h3>
+            <p>Furong Huang maps to entropy-guided routing. Raja Giryes maps to uncertainty in model-estimated coordinates.</p>
+            <div class="pill-row"><span class="pill good">Theory fit</span><span class="pill warn">Coverage required</span></div>
+          </div>
+        </article>
+        <article class="priority-card">
+          <div class="priority-number"></div>
+          <div>
+            <h3>Plenary, 9:50 AM: A Lab Notebook for Agents</h3>
+            <p>Chuan Li's topic directly matches the proposed evidence-use journal. The block's individual speaker times are not published.</p>
+            <div class="pill-row"><span class="pill good">Evidence journal fit</span><span class="pill bad">Setup risk</span></div>
+          </div>
+        </article>
+        <article class="priority-card">
+          <div class="priority-number"></div>
+          <div>
+            <h3>Atlas, 2:30 PM: Lambda workshop</h3>
+            <p>Security Arena, distilled traces, and auto-optimization connect to trace-based repair and benchmark diagnostics.</p>
+            <div class="pill-row"><span class="pill good">Experiment fit</span><span class="pill warn">Coverage required</span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page" id="page-plenary" data-page-id="plenary" hidden>
+      <div class="eyebrow">Stage 1</div>
+      <h1>Plenary</h1>
+      <p class="lede">The public program gives block start times, not individual speaking times inside featured-talk blocks.</p>
+      <div class="schedule-list">
+        <article class="schedule-row" data-event-time="2026-08-01T09:15:00-07:00"><div class="schedule-time">9:15 AM</div><div><div class="schedule-title">Opening Remarks</div><div class="schedule-meta">Rich Lyons and Dawn Song</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T09:30:00-07:00"><div class="schedule-time">9:30 AM</div><div><div class="schedule-title">Agentic AI Infrastructure and Platform</div><div class="schedule-meta">Opening keynote by Peter DeSantis</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T09:50:00-07:00"><div class="schedule-time">9:50 AM</div><div><div class="schedule-title">Featured Talks</div><div class="schedule-meta">Saurabh Tiwary, Jonathan Cohen, and Chuan Li</div><div class="schedule-note">Priority: Chuan Li, A Lab Notebook for Agents</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T10:20:00-07:00"><div class="schedule-time">10:20 AM</div><div><div class="schedule-title">Infrastructure and Platform panel</div><div class="schedule-meta">Peter DeSantis, Saurabh Tiwary, Jonathan Cohen, and Chuan Li</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T10:45:00-07:00"><div class="schedule-time">10:45 AM</div><div><div class="schedule-title">RSI fireside chat</div><div class="schedule-meta">Martin Casado and Jasjeet Sekhon</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T11:10:00-07:00"><div class="schedule-time">11:10 AM</div><div><div class="schedule-title">Future of Software Engineering</div><div class="schedule-meta">Peter Steinberger, Ryan Lopopolo, Michele Catasta, and Alex Graveley</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T11:35:00-07:00"><div class="schedule-time">11:35 AM</div><div><div class="schedule-title">Future of Software Engineering panel</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T12:00:00-07:00"><div class="schedule-time">12:00 PM</div><div><div class="schedule-title">Lunch and Poster Presentations</div><div class="schedule-note">Stay at MLK 1 for speaker traffic.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T13:30:00-07:00"><div class="schedule-time">1:30 PM</div><div><div class="schedule-title">Safe and Secure Agentic AI keynote</div><div class="schedule-meta">Dawn Song</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T13:50:00-07:00"><div class="schedule-time">1:50 PM</div><div><div class="schedule-title">Agentic AI Foundational Capabilities</div><div class="schedule-meta">Wojciech Zaremba, Jerry Tworek, Oriol Vinyals, Dan Roth, and Weizhu Chen</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T14:35:00-07:00"><div class="schedule-time">2:35 PM</div><div><div class="schedule-title">Foundational Capabilities panel</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T15:10:00-07:00"><div class="schedule-time">3:10 PM</div><div><div class="schedule-title">Robotics and World Models</div><div class="schedule-meta">Sergey Levine, Jim Fan, Michael Spranger, Anastasis Germanidis, and Wei Zhan</div><div class="schedule-note">Relevant, but Atlas at 1:30 PM is more specific to the poster.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T15:55:00-07:00"><div class="schedule-time">3:55 PM</div><div><div class="schedule-title">Robotics and World Models panel</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T16:20:00-07:00"><div class="schedule-time">4:20 PM</div><div><div class="schedule-title">Break</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T16:30:00-07:00"><div class="schedule-time">4:30 PM</div><div><div class="schedule-title">Agentic AI in Capital Markets</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T17:00:00-07:00"><div class="schedule-time">5:00 PM</div><div><div class="schedule-title">Fireside chat</div><div class="schedule-meta">Andrew Ng and Alfred Lin</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T17:30:00-07:00"><div class="schedule-time">5:30 PM</div><div><div class="schedule-title">Reception and Poster Presentations</div></div></article>
+      </div>
+    </section>
+
+    <section class="page" id="page-atlas" data-page-id="atlas" hidden>
+      <div class="eyebrow">Stage 2</div>
+      <h1>Atlas</h1>
+      <p class="lede">The strongest direct match for spatial reasoning, world models, typed graphs, and agent interoperability.</p>
+      <div class="schedule-list">
+        <article class="schedule-row" data-event-time="2026-08-01T10:00:00-07:00"><div class="schedule-time">10:00 AM</div><div><div class="schedule-title">Foundational Capabilities keynotes</div><div class="schedule-meta">Jianfeng Gao: Agentic Modeling via Internalizing Agent Harnesses · Sanja Fidler</div><div class="schedule-note">Conflicts with poster setup.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T10:30:00-07:00"><div class="schedule-time">10:30 AM</div><div><div class="schedule-title">Featured Talks</div><div class="schedule-meta">Giambattista Parascandolo: When Language Models Learned to Reason · Aditya Grover: Diffusion LLMs</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T10:50:00-07:00"><div class="schedule-time">10:50 AM</div><div><div class="schedule-title">Turning Chatbots into Agents</div><div class="schedule-meta">Daytona workshop with Lovre Pesut and Muhammad Hashmi</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T11:50:00-07:00"><div class="schedule-time">11:50 AM</div><div><div class="schedule-title">Lunch and Poster Presentations</div><div class="schedule-note">Protect this networking window at MLK 1.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T13:30:00-07:00"><div class="schedule-time">1:30 PM</div><div><div class="schedule-title">Robotics and World Models keynotes</div><div class="schedule-meta">Peter Stone: Autonomous table tennis · Vincent Vanhoucke: Trustworthy Agents in the Real World</div><div class="schedule-note">Best afternoon block if one trusted person covers the poster.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T14:00:00-07:00"><div class="schedule-time">2:00 PM</div><div><div class="schedule-title">Real-world reasoning featured talks</div><div class="schedule-meta">Trevor Darrell, Manmohan Chandraker, and Bolei Zhou</div><div class="schedule-note">Direct match for perception uncertainty and world-model limits.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T14:30:00-07:00"><div class="schedule-time">2:30 PM</div><div><div class="schedule-title">Open-Source Agent Investigations</div><div class="schedule-meta">Lambda workshop with Devina Jain, Zach Mueller, and Chuan Li</div><div class="schedule-note">Relevant to traces, security, and reproducible improvement.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T15:30:00-07:00"><div class="schedule-time">3:30 PM</div><div><div class="schedule-title">Building Agentic Apps End-to-End</div><div class="schedule-meta">Replit workshop with Brandon Middleton</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T16:30:00-07:00"><div class="schedule-time">4:30 PM</div><div><div class="schedule-title">Frameworks and Developer Platforms</div><div class="schedule-meta">Philip Rathle, Josh Albrecht, Woosuk Kwon, Banghua Zhu, and Ranjan Sinha</div><div class="schedule-note">Priority: graph provenance and Agent-to-Agent interoperability.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T17:45:00-07:00"><div class="schedule-time">5:45 PM</div><div><div class="schedule-title">Reception and Poster Presentations</div><div class="schedule-note">Not compatible with the 5:36 PM return plan.</div></div></article>
+      </div>
+    </section>
+
+    <section class="page" id="page-nexus" data-page-id="nexus" hidden>
+      <div class="eyebrow">Stage 3</div>
+      <h1>Nexus</h1>
+      <p class="lede">The strongest stage for AI for Science, benchmark validity, runtime trust, and future agent evaluation.</p>
+      <div class="schedule-list">
+        <article class="schedule-row" data-event-time="2026-08-01T10:00:00-07:00"><div class="schedule-time">10:00 AM</div><div><div class="schedule-title">AI for Science keynote</div><div class="schedule-meta">Markus J. Buehler: Multi-Agent Swarms and Large Reasoning Models</div><div class="schedule-note">Top-tier research fit, but it conflicts with poster setup.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T10:15:00-07:00"><div class="schedule-time">10:15 AM</div><div><div class="schedule-title">AI for Science featured talks</div><div class="schedule-meta">James Zou, Eric Ho, Andrew Schoen, Mengdi Wang, Rose Yu, and Jonathan Welch</div><div class="schedule-note">Priority follow-ups: Rose Yu, Mengdi Wang, James Zou, and Jonathan Welch.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T11:00:00-07:00"><div class="schedule-time">11:00 AM</div><div><div class="schedule-title">Token-Efficient OpenClaw Agentic System</div><div class="schedule-meta">AMD workshop with Mahdi Ghodsi, Satya Devineni, and Eda Zhou</div><div class="schedule-note">OpenClaw is not SpatialClaw. Do not conflate the projects.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T12:10:00-07:00"><div class="schedule-time">12:10 PM</div><div><div class="schedule-title">Lunch and Poster Presentations</div><div class="schedule-note">Stay at MLK 1 and invite AI for Science speakers to the poster.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T13:30:00-07:00"><div class="schedule-time">1:30 PM</div><div><div class="schedule-title">Coding and Web Agents</div><div class="schedule-meta">Silas Alberti, Thariq Shihipar, Dhruv Batra, Shamir Abdul Aziz, and Krishnakumar Sharma</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T14:20:00-07:00"><div class="schedule-time">2:20 PM</div><div><div class="schedule-title">Quantitative Decision Agents</div><div class="schedule-meta">Fetcherr workshop with Uri Yerushalmi and Hadar Sharvit</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T15:20:00-07:00"><div class="schedule-time">3:20 PM</div><div><div class="schedule-title">Agentic AI in Finance and Healthcare</div><div class="schedule-meta">Krishnaram Kenthapadi, Venkat Bhat, and Shaghayegh Gharghabi</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T15:45:00-07:00"><div class="schedule-time">3:45 PM</div><div><div class="schedule-title">Secure Agentic AI</div><div class="schedule-meta">Jon-Rav Shende, Bo Li, Eric Wallace, Milad Nasr, Itsik Mantin, John A McDermid, and Mohamed Nabeel</div><div class="schedule-note">Direct match for runtime trust, guardrails, assurance, and verification.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T17:00:00-07:00"><div class="schedule-time">5:00 PM</div><div><div class="schedule-title">Future of Agent Evaluation</div><div class="schedule-meta">Workshop speakers are not named on the public schedule.</div><div class="schedule-note">Highest content priority. Follow up instead of attending because of poster duty and the home deadline.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T18:00:00-07:00"><div class="schedule-time">6:00 PM</div><div><div class="schedule-title">Reception and Poster Presentations</div><div class="schedule-note">Not compatible with the 7:00 PM home target by BART.</div></div></article>
+      </div>
+    </section>
+
+    <section class="page" id="page-compass" data-page-id="compass" hidden>
+      <div class="eyebrow">Stage 4</div>
+      <h1>Compass</h1>
+      <p class="lede">The strongest stage for executable reasoning structures, reliability, persistent state, routing, and visual-model limits.</p>
+      <div class="schedule-list">
+        <article class="schedule-row" data-event-time="2026-08-01T10:00:00-07:00"><div class="schedule-time">10:00 AM</div><div><div class="schedule-title">AI Systems keynote</div><div class="schedule-meta">Ion Stoica</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T10:15:00-07:00"><div class="schedule-time">10:15 AM</div><div><div class="schedule-title">AI Systems featured talks</div><div class="schedule-meta">Nick Harris, Gosia Steinder, and Tim Hockin</div><div class="schedule-note">Gosia Steinder maps to reliability, security, and efficiency.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T10:45:00-07:00"><div class="schedule-time">10:45 AM</div><div><div class="schedule-title">Why Your AI Agent Needs a Wallet</div><div class="schedule-meta">Circle workshop with Harshal Bhangale</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T11:45:00-07:00"><div class="schedule-time">11:45 AM</div><div><div class="schedule-title">Lunch and Poster Presentations</div><div class="schedule-note">The earliest stage lunch window. Stay at MLK 1.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T13:30:00-07:00"><div class="schedule-time">1:30 PM</div><div><div class="schedule-title">Frameworks and Developer Platforms</div><div class="schedule-meta">Wenbo Guo, Ramesh Raskar, Shiva Kasiviswanthan, Tanya Roosta, Denis Akhiyarov, Nilou Salehi, and Johann Schleier-Smith</div><div class="schedule-note">Priority: executable reasoning structures and persistent state.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T14:20:00-07:00"><div class="schedule-time">2:20 PM</div><div><div class="schedule-title">Build AI Agents That Survive Failure</div><div class="schedule-meta">Temporal workshop with Nikolay Advolodkin</div><div class="schedule-note">Relevant to repair and stateful recovery.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T15:20:00-07:00"><div class="schedule-time">3:20 PM</div><div><div class="schedule-title">Foundational Capabilities</div><div class="schedule-meta">Doga Kerestecioglu, Ian Fischer, Yu Su, Furong Huang, and Raja Giryes</div><div class="schedule-note">Second-best covered window: reasoning control and multimodal uncertainty.</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T16:10:00-07:00"><div class="schedule-time">4:10 PM</div><div><div class="schedule-title">The Open Agentic Stack</div><div class="schedule-meta">Linux Foundation workshop with Matt White</div></div></article>
+        <article class="schedule-row" data-event-time="2026-08-01T17:10:00-07:00"><div class="schedule-time">5:10 PM</div><div><div class="schedule-title">Reception and Poster Presentations</div><div class="schedule-note">This overlaps the planned departure from MLK.</div></div></article>
+      </div>
+    </section>
+
+    <section class="page" id="page-followups" data-page-id="followups" hidden>
+      <div class="eyebrow">Conversation prompts</div>
+      <h1>Speaker follow-ups</h1>
+      <p class="lede">Lead with one precise connection, ask one technical question, then offer the poster or paper link. Do not turn the first interaction into a full project pitch.</p>
+
+      <div class="question-list">
+        <article class="question-card"><h3>Chuan Li</h3><p>What is the minimum journal record needed to prove which observations and computed facts an answer consumed?</p></article>
+        <article class="question-card"><h3>Trevor Darrell or Vincent Vanhoucke</h3><p>When masks, depth, or point maps are uncertain, what condition should force a spatial agent to refuse rather than compute?</p></article>
+        <article class="question-card"><h3>Rose Yu or Mengdi Wang</h3><p>What evidence state would make an agent's scientific conclusion reproducible rather than merely plausible?</p></article>
+        <article class="question-card"><h3>Philip Rathle</h3><p>How should a graph distinguish observed, model-proposed, and derived values while preserving <button class="term" type="button" data-term="Provenance" data-definition="A record of where a value came from, how it was produced, which version produced it, and which later computations consumed it.">provenance</button>?</p></article>
+        <article class="question-card"><h3>Ranjan Sinha</h3><p>Which interoperability fields are essential for exchanging typed evidence between agents?</p></article>
+        <article class="question-card"><h3>Nilou Salehi</h3><p>How would you test whether an executable reasoning structure contributes beyond structured prompting?</p></article>
+        <article class="question-card"><h3>Furong Huang</h3><p>What calibration evidence is needed before confidence safely controls model routing?</p></article>
+        <article class="question-card"><h3>Raja Giryes</h3><p>How should geometric uncertainty from a multimodal model propagate into downstream spatial computations?</p></article>
+        <article class="question-card"><h3>Jon-Rav Shende, Bo Li, or John A McDermid</h3><p>Which freshness, provenance, and attestation checks must pass before a verifier counts an answer?</p></article>
+        <article class="question-card"><h3>Future of Agent Evaluation</h3><p>Would a schema-matched control that changes only geometric correctness isolate grounding from prompt structure, or would you require another counterfactual?</p></article>
+      </div>
+
+      <h2>Thirty-second follow-up structure</h2>
+      <div class="card span-12">
+        <p><strong>Connection:</strong> “Your point about [specific idea] connects directly to our Spatial Atlas work on [one contribution].”</p>
+        <p><strong>Question:</strong> Ask the relevant question above.</p>
+        <p><strong>Close:</strong> “May I send you the poster and paper link after the session?”</p>
+      </div>
+    </section>
+
+    <section class="page" id="page-transit" data-page-id="transit" hidden>
+      <div class="eyebrow">Official scheduled trips</div>
+      <h1>BART plan</h1>
+      <p class="lede">The train times are exact scheduled fields from the official BART API for August 1. Walking, packing, and the final trip home remain estimates or unknowns.</p>
+
+      <div class="transit-grid">
+        <article class="transit-card">
+          <h3>Union City to Downtown Berkeley</h3>
+          <div class="train">
+            <div class="train-time">9:03</div><div class="train-line"></div><div class="train-time">9:46</div>
+            <div class="train-caption">Safer setup margin</div>
+          </div>
+          <div class="train recommended">
+            <div class="train-time">9:23</div><div class="train-line"></div><div class="train-time">10:06</div>
+            <div class="train-caption">Recommended energy-first option · 43 scheduled minutes</div>
+          </div>
+          <div class="train">
+            <div class="train-time">9:43</div><div class="train-line"></div><div class="train-time">10:26</div>
+            <div class="train-caption">Too compressed for reliable setup</div>
+          </div>
+          <p>Platform 2 to Platform 1. Route 3 toward OAK Airport and Richmond.</p>
+        </article>
+
+        <article class="transit-card">
+          <h3>Downtown Berkeley to Union City</h3>
+          <div class="train">
+            <div class="train-time">5:16</div><div class="train-line"></div><div class="train-time">6:02</div>
+            <div class="train-caption">Conservative option for a longer last mile</div>
+          </div>
+          <div class="train recommended">
+            <div class="train-time">5:36</div><div class="train-line"></div><div class="train-time">6:22</div>
+            <div class="train-caption">Recommended for the 7:00 PM home target · 46 scheduled minutes</div>
+          </div>
+          <div class="train">
+            <div class="train-time">5:56</div><div class="train-line"></div><div class="train-time">6:42</div>
+            <div class="train-caption">Only 18 scheduled minutes remain for the last mile</div>
+          </div>
+          <div class="train">
+            <div class="train-time">6:16</div><div class="train-line"></div><div class="train-time">7:02</div>
+            <div class="train-caption">Misses the target before the final trip home</div>
+          </div>
+          <div class="train">
+            <div class="train-time">6:36</div><div class="train-line"></div><div class="train-time">7:22</div>
+            <div class="train-caption">Likely full-session train after packing and walking</div>
+          </div>
+          <p>Platform 2 to Platform 1. Route 4 toward OAK Airport and Berryessa or North San Jose.</p>
+        </article>
+      </div>
+
+      <div class="alert amber">
+        <div class="alert-icon" aria-hidden="true">i</div>
+        <div>
+          <strong>Do not treat 6:16 PM as the practical full-session train.</strong>
+          <p>After a 6:00 PM finish, packing and the estimated walk make 6:36 PM the likely catch. It reaches Union City at 7:22 PM before the last mile.</p>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <a class="button primary" href="https://www.bart.gov/schedules/advisories" target="_blank" rel="noopener">Check BART advisories</a>
+        <a class="button" href="https://www.bart.gov/stations/ucty" target="_blank" rel="noopener">Union City station</a>
+        <a class="button" href="https://www.bart.gov/stations/dbrk" target="_blank" rel="noopener">Downtown Berkeley station</a>
+      </div>
+    </section>
+
+    <section class="page" id="page-checklist" data-page-id="checklist" hidden>
+      <div class="eyebrow">Saved on this device</div>
+      <h1>Field checklist</h1>
+      <p class="lede">Checklist state is stored locally when the browser permits it. The guide still works if local storage is blocked.</p>
+
+      <div class="progress-wrap">
+        <div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+        <div class="progress-label" id="progressLabel">0 of 0</div>
+      </div>
+
+      <section class="checklist-group">
+        <h3>Before leaving</h3>
+        <label class="check-row"><input type="checkbox" data-check="luma"><span>Save the Luma ticket QR code offline</span></label>
+        <label class="check-row"><input type="checkbox" data-check="id"><span>Carry photo identification</span></label>
+        <label class="check-row"><input type="checkbox" data-check="poster"><span>Put the poster in its protective tube</span></label>
+        <label class="check-row"><input type="checkbox" data-check="power"><span>Pack phone and power bank</span></label>
+        <label class="check-row"><input type="checkbox" data-check="clipper"><span>Pack Clipper or contactless payment</span></label>
+        <label class="check-row"><input type="checkbox" data-check="water"><span>Pack water</span></label>
+        <label class="check-row"><input type="checkbox" data-check="mounting"><span>Pack backup clips or tape</span></label>
+        <label class="check-row"><input type="checkbox" data-check="offline"><span>Save this HTML guide offline on the phone</span></label>
+        <label class="check-row"><input type="checkbox" data-check="advisories"><span>Check BART advisories and elevator status</span></label>
+      </section>
+
+      <section class="checklist-group">
+        <h3>At MLK</h3>
+        <label class="check-row"><input type="checkbox" data-check="checkin"><span>Check in at MLK East</span></label>
+        <label class="check-row"><input type="checkbox" data-check="assembly"><span>Assemble at the LSP picnic tables</span></label>
+        <label class="check-row"><input type="checkbox" data-check="mount"><span>Mount in MLK 1</span></label>
+        <label class="check-row"><input type="checkbox" data-check="qr"><span>Test every QR code</span></label>
+        <label class="check-row"><input type="checkbox" data-check="photo"><span>Photograph the mounted poster</span></label>
+        <label class="check-row"><input type="checkbox" data-check="rooms"><span>Confirm the locations of Plenary, Atlas, Nexus, and Compass</span></label>
+        <label class="check-row"><input type="checkbox" data-check="approval"><span>Confirm whether early departure is approved</span></label>
+        <label class="check-row"><input type="checkbox" data-check="coverage"><span>Confirm poster coverage before attending an afternoon talk</span></label>
+      </section>
+
+      <section class="checklist-group">
+        <h3>Before leaving Berkeley</h3>
+        <label class="check-row"><input type="checkbox" data-check="contacts"><span>Save new contacts with one contextual note</span></label>
+        <label class="check-row"><input type="checkbox" data-check="boardphoto"><span>Photograph the board before breakdown</span></label>
+        <label class="check-row"><input type="checkbox" data-check="pack"><span>Pack the poster securely</span></label>
+        <label class="check-row"><input type="checkbox" data-check="livebart"><span>Check live BART departures</span></label>
+        <label class="check-row"><input type="checkbox" data-check="return"><span>Target the 5:36 PM train for the home-by-7 plan</span></label>
+      </section>
+
+      <div class="hero-actions">
+        <button class="button" id="resetChecklistButton" type="button">Reset checklist</button>
+      </div>
+    </section>
+
+    <section class="page" id="page-sources" data-page-id="sources" hidden>
+      <div class="eyebrow">Verified and bounded</div>
+      <h1>Sources and limits</h1>
+      <p class="lede">Every operational claim is separated into an official schedule field, a user-provided event instruction, an estimate, or an unresolved location.</p>
+
+      <div class="source-list">
+        <a class="source-link" href="https://rdi.berkeley.edu/events/agentic-ai-summit-2026" target="_blank" rel="noopener"><span>Berkeley RDI official 2026 program</span><span>Schedule</span></a>
+        <a class="source-link" href="https://studentunion.berkeley.edu/contact-us/" target="_blank" rel="noopener"><span>UC Berkeley Student Union</span><span>MLK location</span></a>
+        <a class="source-link" href="https://www.bart.gov/schedules/advisories" target="_blank" rel="noopener"><span>BART advisories</span><span>Live check</span></a>
+        <a class="source-link" href="https://www.bart.gov/stations/ucty" target="_blank" rel="noopener"><span>Union City BART station</span><span>Station</span></a>
+        <a class="source-link" href="https://www.bart.gov/stations/dbrk" target="_blank" rel="noopener"><span>Downtown Berkeley BART station</span><span>Station</span></a>
+        <a class="source-link" href="SATURDAY_SCHEDULE.md"><span>Markdown version of this guide</span><span>Offline file</span></a>
+      </div>
+
+      <h2>Verification boundary</h2>
+      <div class="grid">
+        <article class="card span-6"><div class="card-kicker">Verified</div><h3>Event schedule</h3><p>Checked against the current Berkeley RDI program on July 30, 2026.</p></article>
+        <article class="card span-6"><div class="card-kicker">Verified</div><h3>BART schedule</h3><p>Queried from the official Schedule API for Saturday, August 1, 2026. These are scheduled trips, not live guarantees.</p></article>
+        <article class="card span-6"><div class="card-kicker">Estimated</div><h3>Walking and setup</h3><p>The 15 to 20 minute walk, setup duration, packing duration, and station-arrival buffers are planning estimates.</p></article>
+        <article class="card span-6"><div class="card-kicker">Unresolved</div><h3>Physical stage rooms</h3><p>The public schedule does not publish buildings or rooms for Plenary, Atlas, Nexus, and Compass.</p></article>
+        <article class="card span-12"><div class="card-kicker">Inference</div><h3>Talk rankings</h3><p>Poster-fit rankings are reasoned inferences from published session titles and the verified Spatial Atlas narrative. They do not claim knowledge of unpublished talk content.</p></article>
+      </div>
+
+      <p class="fine-print">This file has no external scripts, fonts, trackers, or runtime dependencies. It is designed to remain usable from a local file while offline.</p>
+    </section>
+  </main>
+
+  <nav class="mobile-tabs" aria-label="Mobile quick navigation">
+    <button class="mobile-tab" type="button" data-go="timeline">Timeline</button>
+    <button class="mobile-tab" type="button" data-go="priorities">Talks</button>
+    <button class="mobile-tab" type="button" data-go="transit">Transit</button>
+    <button class="mobile-tab" type="button" data-go="checklist">Checklist</button>
+  </nav>
+
+  <aside class="popover" id="termPopover" role="dialog" aria-modal="false" aria-labelledby="termTitle" hidden>
+    <div class="popover-header">
+      <h3 id="termTitle">Definition</h3>
+      <button class="icon-button" id="closePopoverButton" type="button" aria-label="Close definition">×</button>
+    </div>
+    <p id="termDefinition"></p>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const pageOrder = [
+        "dashboard",
+        "timeline",
+        "priorities",
+        "plenary",
+        "atlas",
+        "nexus",
+        "compass",
+        "followups",
+        "transit",
+        "checklist",
+        "sources"
+      ];
+
+      const journeyEvents = [
+        { time: "2026-08-01T09:10:00-07:00", label: "Reach Union City BART", detail: "Prepare for the 9:23 AM train." },
+        { time: "2026-08-01T09:23:00-07:00", label: "Depart Union City", detail: "Direct Route 3 to Downtown Berkeley." },
+        { time: "2026-08-01T10:06:00-07:00", label: "Arrive Downtown Berkeley", detail: "Walk to MLK with the poster." },
+        { time: "2026-08-01T10:21:00-07:00", label: "Reach MLK and begin setup", detail: "MLK East, LSP picnic tables, then MLK 1." },
+        { time: "2026-08-01T11:00:00-07:00", label: "Poster session begins", detail: "Present and network at MLK 1." },
+        { time: "2026-08-01T17:00:00-07:00", label: "Conditional breakdown", detail: "Only with approval or confirmed coverage." },
+        { time: "2026-08-01T17:36:00-07:00", label: "Depart Downtown Berkeley", detail: "Target train for the 7:00 PM home plan." },
+        { time: "2026-08-01T18:22:00-07:00", label: "Arrive Union City", detail: "Complete the final trip home." }
+      ];
+
+      let activePage = "dashboard";
+      let toastTimer = null;
+
+      const safeStorage = {
+        get(key) {
+          try {
+            return window.localStorage.getItem(key);
+          } catch (error) {
+            return null;
+          }
+        },
+        set(key, value) {
+          try {
+            window.localStorage.setItem(key, value);
+            return true;
+          } catch (error) {
+            return false;
+          }
+        },
+        remove(key) {
+          try {
+            window.localStorage.removeItem(key);
+          } catch (error) {
+          }
+        }
+      };
+
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add("show");
+        if (toastTimer) window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2200);
+      }
+
+      function getHashPage() {
+        try {
+          const value = window.location.hash.replace(/^#/, "");
+          return pageOrder.includes(value) ? value : null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function writePageState(page) {
+        try {
+          window.history.replaceState({ page }, "", `#${page}`);
+          return;
+        } catch (error) {
+        }
+        try {
+          window.location.hash = page;
+        } catch (error) {
+        }
+      }
+
+      function closeNav() {
+        document.body.classList.remove("nav-open");
+        const menu = document.getElementById("menuButton");
+        if (menu) menu.setAttribute("aria-expanded", "false");
+      }
+
+      function setPage(page, updateAddress = true) {
+        if (!pageOrder.includes(page)) page = "dashboard";
+        activePage = page;
+
+        document.querySelectorAll(".page").forEach(section => {
+          section.hidden = section.dataset.pageId !== page;
+        });
+
+        document.querySelectorAll(".nav-button").forEach(button => {
+          if (button.dataset.page === page) {
+            button.setAttribute("aria-current", "page");
+          } else {
+            button.removeAttribute("aria-current");
+          }
+        });
+
+        document.querySelectorAll(".mobile-tab").forEach(button => {
+          if (button.dataset.go === page) {
+            button.setAttribute("aria-current", "page");
+          } else {
+            button.removeAttribute("aria-current");
+          }
+        });
+
+        if (updateAddress) writePageState(page);
+        closeNav();
+
+        try {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (error) {
+          window.scrollTo(0, 0);
+        }
+
+        const heading = document.querySelector(`#page-${page} h1`);
+        if (heading) {
+          window.setTimeout(() => {
+            const main = document.getElementById("main");
+            if (main) main.focus({ preventScroll: true });
+          }, 20);
+        }
+      }
+
+      function formatClock(date) {
+        return {
+          day: new Intl.DateTimeFormat("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            timeZone: "America/Los_Angeles"
+          }).format(date),
+          time: new Intl.DateTimeFormat("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            second: "2-digit",
+            timeZone: "America/Los_Angeles"
+          }).format(date)
+        };
+      }
+
+      function updateClockAndNext() {
+        const now = new Date();
+        const clock = formatClock(now);
+        const liveClock = document.getElementById("liveClock");
+        if (liveClock) liveClock.innerHTML = `<strong>${clock.time}</strong>${clock.day} · Pacific`;
+
+        const next = journeyEvents.find(item => new Date(item.time).getTime() >= now.getTime());
+        const card = document.getElementById("nextEvent");
+        if (card) {
+          if (next) {
+            const eventDate = new Date(next.time);
+            const time = new Intl.DateTimeFormat("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              timeZone: "America/Los_Angeles"
+            }).format(eventDate);
+            card.innerHTML = `<div class="next-time">${time}</div><div><h3>${next.label}</h3><p>${next.detail}</p></div>`;
+          } else {
+            card.innerHTML = `<div class="next-time">Done</div><div><h3>Schedule complete</h3><p>Use the follow-up page to organize contacts and next actions.</p></div>`;
+          }
+        }
+
+        updateTimelineState(now);
+        updateScheduleState(now);
+      }
+
+      function updateTimelineState(now) {
+        const items = Array.from(document.querySelectorAll("[data-journey-time]"));
+        items.forEach(item => item.classList.remove("is-past", "is-current", "is-next"));
+        const times = items.map(item => new Date(item.dataset.journeyTime).getTime());
+        let nextIndex = times.findIndex(value => value >= now.getTime());
+
+        items.forEach((item, index) => {
+          if (times[index] < now.getTime()) item.classList.add("is-past");
+        });
+
+        if (nextIndex >= 0) {
+          const delta = times[nextIndex] - now.getTime();
+          items[nextIndex].classList.add(delta <= 20 * 60 * 1000 ? "is-current" : "is-next");
+        }
+      }
+
+      function updateScheduleState(now) {
+        document.querySelectorAll(".page").forEach(page => {
+          const rows = Array.from(page.querySelectorAll("[data-event-time]"));
+          rows.forEach(row => row.classList.remove("is-past", "is-next"));
+          const next = rows.find(row => new Date(row.dataset.eventTime).getTime() >= now.getTime());
+          rows.forEach(row => {
+            if (new Date(row.dataset.eventTime).getTime() < now.getTime()) row.classList.add("is-past");
+          });
+          if (next) next.classList.add("is-next");
+        });
+      }
+
+      function applyTheme(theme) {
+        const html = document.documentElement;
+        if (theme === "light" || theme === "dark") {
+          html.dataset.theme = theme;
+        } else {
+          delete html.dataset.theme;
+          theme = "auto";
+        }
+        safeStorage.set("spatial-atlas-summit-theme", theme);
+        const button = document.getElementById("themeButton");
+        if (button) {
+          button.title = `Theme: ${theme}`;
+          button.setAttribute("aria-label", `Change theme. Current theme: ${theme}`);
+          button.textContent = theme === "light" ? "☀" : theme === "dark" ? "☾" : "◐";
+        }
+      }
+
+      function cycleTheme() {
+        const current = safeStorage.get("spatial-atlas-summit-theme") || "auto";
+        const next = current === "auto" ? "light" : current === "light" ? "dark" : "auto";
+        applyTheme(next);
+        showToast(`Theme: ${next}`);
+      }
+
+      function checklistKey(id) {
+        return `spatial-atlas-summit-check-${id}`;
+      }
+
+      function restoreChecklist() {
+        document.querySelectorAll("[data-check]").forEach(input => {
+          input.checked = safeStorage.get(checklistKey(input.dataset.check)) === "1";
+        });
+        updateChecklistProgress();
+      }
+
+      function updateChecklistProgress() {
+        const inputs = Array.from(document.querySelectorAll("[data-check]"));
+        const checked = inputs.filter(input => input.checked).length;
+        const percent = inputs.length ? Math.round((checked / inputs.length) * 100) : 0;
+        const bar = document.getElementById("progressBar");
+        const label = document.getElementById("progressLabel");
+        const badge = document.getElementById("navProgress");
+        if (bar) bar.style.width = `${percent}%`;
+        if (label) label.textContent = `${checked} of ${inputs.length}`;
+        if (badge) badge.textContent = `${percent}%`;
+      }
+
+      function resetChecklist() {
+        document.querySelectorAll("[data-check]").forEach(input => {
+          input.checked = false;
+          safeStorage.remove(checklistKey(input.dataset.check));
+        });
+        updateChecklistProgress();
+        showToast("Checklist reset");
+      }
+
+      async function copyText(text) {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+            return true;
+          }
+        } catch (error) {
+        }
+
+        try {
+          const area = document.createElement("textarea");
+          area.value = text;
+          area.setAttribute("readonly", "");
+          area.style.position = "fixed";
+          area.style.opacity = "0";
+          document.body.appendChild(area);
+          area.select();
+          const ok = document.execCommand("copy");
+          area.remove();
+          return ok;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function quickPlanText() {
+        return [
+          "Spatial Atlas, Saturday August 1",
+          "9:23 AM Union City BART to Downtown Berkeley",
+          "10:06 AM arrive Downtown Berkeley",
+          "10:21 to 10:26 AM estimated arrival at MLK and poster setup",
+          "11:00 AM poster session begins in MLK 1",
+          "5:00 PM conditional breakdown only with approval",
+          "5:36 PM Downtown Berkeley BART to Union City",
+          "6:22 PM arrive Union City",
+          "Hard constraint: full 11 to 6 poster duty cannot meet a 7 PM home target by BART."
+        ].join("\n");
+      }
+
+      function escapeIcs(text) {
+        return text
+          .replace(/\\/g, "\\\\")
+          .replace(/\n/g, "\\n")
+          .replace(/,/g, "\\,")
+          .replace(/;/g, "\\;");
+      }
+
+      function createCalendar() {
+        const events = [
+          ["20260801T092300", "20260801T100600", "BART to Downtown Berkeley", "Union City Platform 2 to Downtown Berkeley Platform 1"],
+          ["20260801T102100", "20260801T105000", "Spatial Atlas poster setup", "MLK East check-in, LSP picnic tables, MLK 1"],
+          ["20260801T110000", "20260801T170000", "Spatial Atlas poster presentation", "Official session continues to 6 PM. Early breakdown requires approval."],
+          ["20260801T170000", "20260801T171000", "Conditional poster breakdown", "Only with organizer approval or confirmed coverage."],
+          ["20260801T173600", "20260801T182200", "BART to Union City", "Downtown Berkeley Platform 2 to Union City Platform 1"]
+        ];
+
+        const lines = [
+          "BEGIN:VCALENDAR",
+          "VERSION:2.0",
+          "PRODID:-//Spatial Atlas//Summit Guide//EN",
+          "CALSCALE:GREGORIAN",
+          "METHOD:PUBLISH"
+        ];
+
+        events.forEach((event, index) => {
+          lines.push(
+            "BEGIN:VEVENT",
+            `UID:spatial-atlas-${index + 1}-20260801@local`,
+            `DTSTART;TZID=America/Los_Angeles:${event[0]}`,
+            `DTEND;TZID=America/Los_Angeles:${event[1]}`,
+            `SUMMARY:${escapeIcs(event[2])}`,
+            `DESCRIPTION:${escapeIcs(event[3])}`,
+            "END:VEVENT"
+          );
+        });
+
+        lines.push("END:VCALENDAR");
+        try {
+          const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "spatial-atlas-saturday.ics";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+          showToast("Calendar downloaded");
+        } catch (error) {
+          showToast("Calendar download is blocked in this browser");
+        }
+      }
+
+      function openDefinition(button) {
+        const popover = document.getElementById("termPopover");
+        const title = document.getElementById("termTitle");
+        const definition = document.getElementById("termDefinition");
+        if (!popover || !title || !definition) return;
+        title.textContent = button.dataset.term || "Definition";
+        definition.textContent = button.dataset.definition || "";
+        popover.hidden = false;
+        const close = document.getElementById("closePopoverButton");
+        if (close) close.focus();
+      }
+
+      function closeDefinition() {
+        const popover = document.getElementById("termPopover");
+        if (popover) popover.hidden = true;
+      }
+
+      document.querySelectorAll("[data-page]").forEach(button => {
+        button.addEventListener("click", () => setPage(button.dataset.page));
+      });
+
+      document.querySelectorAll("[data-go]").forEach(button => {
+        button.addEventListener("click", () => setPage(button.dataset.go));
+      });
+
+      document.querySelectorAll("[data-term]").forEach(button => {
+        button.addEventListener("click", () => openDefinition(button));
+      });
+
+      document.querySelectorAll("[data-check]").forEach(input => {
+        input.addEventListener("change", () => {
+          safeStorage.set(checklistKey(input.dataset.check), input.checked ? "1" : "0");
+          updateChecklistProgress();
+        });
+      });
+
+      const menuButton = document.getElementById("menuButton");
+      if (menuButton) {
+        menuButton.addEventListener("click", () => {
+          const open = document.body.classList.toggle("nav-open");
+          menuButton.setAttribute("aria-expanded", String(open));
+        });
+      }
+
+      const scrim = document.getElementById("scrim");
+      if (scrim) scrim.addEventListener("click", closeNav);
+
+      const themeButton = document.getElementById("themeButton");
+      if (themeButton) themeButton.addEventListener("click", cycleTheme);
+
+      const copyPlanButton = document.getElementById("copyPlanButton");
+      if (copyPlanButton) {
+        copyPlanButton.addEventListener("click", async () => {
+          const ok = await copyText(quickPlanText());
+          showToast(ok ? "Quick plan copied" : "Clipboard access is blocked");
+        });
+      }
+
+      const calendarButton = document.getElementById("calendarButton");
+      if (calendarButton) calendarButton.addEventListener("click", createCalendar);
+
+      const resetChecklistButton = document.getElementById("resetChecklistButton");
+      if (resetChecklistButton) resetChecklistButton.addEventListener("click", resetChecklist);
+
+      const closePopoverButton = document.getElementById("closePopoverButton");
+      if (closePopoverButton) closePopoverButton.addEventListener("click", closeDefinition);
+
+      document.addEventListener("keydown", event => {
+        const target = event.target;
+        const interactive = target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+
+        if (event.key === "Escape") {
+          closeNav();
+          closeDefinition();
+          return;
+        }
+
+        if (interactive || event.altKey || event.metaKey || event.ctrlKey) return;
+        if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+        event.preventDefault();
+        const index = pageOrder.indexOf(activePage);
+        const delta = event.key === "ArrowDown" ? 1 : -1;
+        const next = (index + delta + pageOrder.length) % pageOrder.length;
+        setPage(pageOrder[next]);
+      });
+
+      window.addEventListener("hashchange", () => {
+        const page = getHashPage();
+        if (page && page !== activePage) setPage(page, false);
+      });
+
+      applyTheme(safeStorage.get("spatial-atlas-summit-theme") || "auto");
+      restoreChecklist();
+      setPage(getHashPage() || "dashboard", false);
+      updateClockAndNext();
+      window.setInterval(updateClockAndNext, 30000);
+    })();
+  </script>
+</body>
+</html>
