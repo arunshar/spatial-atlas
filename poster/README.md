@@ -14,6 +14,8 @@ print preflight record, and evidence-bounded narrative materials.
 | `poster/PRINT_PREFLIGHT.md` | Measured PDF, font, image, margin, link, and QR checks |
 | `poster/POSTER_NARRATIVE.md` | Current evidence-bounded spoken narrative |
 | `poster/POSTER_QA_PACKET.md` | Audited audience questions, answers, arithmetic checks, and red-card claims |
+| `poster/SPATIAL_ATLAS_EXPLAINED.md` | Detailed public explainer with implementation, theory, evaluation, attribution, and limitation boundaries |
+| `poster/SPATIAL_ATLAS_EXPLAINED.html` | Self-contained browser version of the detailed explainer |
 | `poster/CLAUDE_POSTER_NARRATIVE_HANDOFF.md` | Claim boundaries and source hierarchy for narrative revision |
 | `poster/CLAUDE_POSTER_REVISION_PROMPT.md` | Paste-ready task prompt for Claude |
 | `poster/assets/umn_seal.pdf` | Vector University of Minnesota seal used in the header |
@@ -21,6 +23,8 @@ print preflight record, and evidence-bounded narrative materials.
 | `poster/assets/berkeley_rdi.png` | Official Berkeley RDI horizontal wordmark used in the header |
 
 The PDF is the print authority. The PNG is only a preview.
+`SPATIAL_ATLAS_EXPLAINED.md` is the text authority for the detailed guide. The
+HTML file is a self-contained browser export of that guide.
 
 ## Build
 
