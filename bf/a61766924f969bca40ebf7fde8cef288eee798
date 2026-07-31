@@ -1,0 +1,29 @@
+poster/spatial_atlas_poster.tex
+  s_377ce295e32669::t_e4140dae3abe67 17-18
+poster/SPATIAL_ATLAS_EXPLAINED.html
+  s_377ce295e32669::t_f17a2af9fd3aba 188-189
+  s_377ce295e32669::t_47ee92b40d7b30 493-525
+  s_377ce295e32669::t_58d3dc76b2170b 1-187,190-192,194-492,526-1018
+  s_377ce295e32669::t_d7d2f22a573348 193
+poster/README.md
+  s_377ce295e32669::t_d73a4803bf75b6 26-27
+  s_377ce295e32669::t_40bbac3193a844 17-18
+poster/SPATIAL_ATLAS_EXPLAINED.md
+  s_377ce295e32669::t_007e9a6f05da32 1-617
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "bfa61766924f969bca40ebf7fde8cef288eee798",
+  "prompts": {},
+  "sessions": {
+    "s_377ce295e32669": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f934f-7b83-78d2-8061-95a4bbff4347",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
