@@ -1,0 +1,29 @@
+poster/README.md
+  s_377ce295e32669::t_53cc7f152c1e8d 1-99
+poster/CLAUDE_POSTER_REVISION_PROMPT.md
+  s_377ce295e32669::t_53cc7f152c1e8d 1-144
+poster/PRINT_PREFLIGHT.md
+  s_377ce295e32669::t_c747e01b8fa970 1-138
+poster/POSTER_NARRATIVE.md
+  s_377ce295e32669::t_53cc7f152c1e8d 1-217
+poster/CLAUDE_POSTER_NARRATIVE_HANDOFF.md
+  s_377ce295e32669::t_53cc7f152c1e8d 1-205
+poster/spatial_atlas_poster.tex
+  s_377ce295e32669::t_186e3648a46d95 2,233
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "d29c8c30a3cbf463fa120c825b3c074a3a07e923",
+  "prompts": {},
+  "sessions": {
+    "s_377ce295e32669": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f934f-7b83-78d2-8061-95a4bbff4347",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
