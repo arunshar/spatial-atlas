@@ -1,0 +1,23 @@
+pyproject.toml
+  s_53a0bb9576255d::t_c6100033795980 46-70
+src/fieldwork/spatial.py
+  s_53a0bb9576255d::t_f1dc244c164035 272-277
+src/mlebench/analyzer.py
+  s_53a0bb9576255d::t_b0b061879ef1b8 97-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "5e24a62f0655b7d83a00490f7ef25950ea858e0c",
+  "prompts": {},
+  "sessions": {
+    "s_53a0bb9576255d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ff6fe375-a5c9-427c-88ae-96cd73d4e53a",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
