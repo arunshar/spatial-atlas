@@ -7,9 +7,59 @@ on:
       - main
     tags:
       - 'v*'
+  # Nightly, so a newly published advisory against a pinned transitive dependency is
+  # caught within a day on its own schedule rather than by whoever next opens a PR.
+  schedule:
+    - cron: '0 7 * * *'
+
+permissions:
+  contents: read
 
 jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: false
+      - name: Install (locked) + test deps
+        run: uv sync --frozen --extra test
+      - name: Audit locked Python dependencies
+        # pip-audit is version-pinned but its advisory feed is not, so this step depends on
+        # data that moves independently of the branch. A commit that passed on 19 July went
+        # red on 8 August with no dependency file touched, which is how 91b5cd5 happened.
+        # Blocking on main, tags, and the nightly run, where a vulnerable lockfile genuinely
+        # should stop the build. Advisory-only on pull requests, so a CVE published mid-review
+        # reports itself without failing work that did not introduce it. The nightly run is
+        # what guarantees it still gets noticed within a day.
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        run: |
+          uv export --frozen --no-hashes --format requirements-txt -o /tmp/requirements.txt
+          uvx --from pip-audit==2.10.1 pip-audit \
+            --no-deps --disable-pip -r /tmp/requirements.txt
+      - name: Lint application and tests
+        run: uv run --with ruff==0.16.2 ruff check src tests
+      - name: Scan application security patterns
+        run: uvx --from bandit==1.9.4 bandit -q -r src
+      - name: Unit + integration + smoke (no GPU/dataset)
+        run: |
+          uv run pytest -m "not e2e and not gpu" \
+            --cov=fieldwork.perception --cov-report=term-missing \
+            --cov-fail-under=90 --junitxml=junit.xml
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: junit-spatial-atlas
+          path: junit.xml
+
   test-and-publish:
+    needs: unit-tests
     runs-on: ubuntu-latest
 
     permissions:
@@ -18,11 +68,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Extract metadata for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -32,7 +84,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
           push: false
@@ -43,20 +95,31 @@ jobs:
 
       - name: Start agent container
         env:
-            SECRETS_JSON: ${{ toJson(secrets) }}
+          CI_BEARER_TOKEN: ci-only-spatial-atlas-boundary-token
+          META_TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          echo "$SECRETS_JSON" | jq -r 'to_entries[] | "\(.key)=\(.value)"' > .env
-          docker run -d -p 9019:9019 --name agent-container --env-file .env $(echo "${{ steps.meta.outputs.tags }}" | head -n1) --host 0.0.0.0 --port 9019
+          IMAGE_TAG="$(printf '%s\n' "$META_TAGS" | head -n1)"
+          docker run -d -p 9019:9019 --name agent-container \
+            -e ATLAS_BEARER_TOKEN="$CI_BEARER_TOKEN" \
+            "$IMAGE_TAG" --host 0.0.0.0 --port 9019
           timeout 30 bash -c 'until curl -sf http://localhost:9019/.well-known/agent-card.json > /dev/null; do sleep 1; done'
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v4
-
-      - name: Install test dependencies
-        run: uv sync --extra test
-
-      - name: Run tests
-        run: uv run pytest -v --agent-url http://localhost:9019
+      - name: Exercise authenticated A2A boundary
+        env:
+          CI_BEARER_TOKEN: ci-only-spatial-atlas-boundary-token
+        run: |
+          payload='{"id":"ci-valid-request","jsonrpc":"2.0","method":"message/send","params":{"message":{"kind":"message","messageId":"ci-valid-message","parts":[{"kind":"text","text":"# Competition\nMLE-Bench integration boundary"}],"role":"user"}}}'
+          unauth_status="$(curl -sS -o /tmp/unauth.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' --data "$payload" http://localhost:9019/)"
+          test "$unauth_status" = 401
+          auth_status="$(curl -sS -o /tmp/auth.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -H "Authorization: Bearer $CI_BEARER_TOKEN" \
+            --data "$payload" http://localhost:9019/)"
+          test "$auth_status" = 200
+          grep -q '"jsonrpc"' /tmp/auth.json
+          grep -q '"state":"failed"' /tmp/auth.json
+          grep -q 'could not complete this task' /tmp/auth.json
 
       - name: Stop container and show logs
         if: always()
@@ -66,20 +129,24 @@ jobs:
           docker stop agent-container || true
 
       - name: Log in to GitHub Container Registry
-        if: success() && github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        if: success() && github.event_name == 'push'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push Docker image
-        if: success() && github.event_name != 'pull_request'
-        run: docker push --all-tags ghcr.io/${GITHUB_REPOSITORY,,}
+        if: success() && github.event_name == 'push'
+        run: docker push --all-tags "ghcr.io/${GITHUB_REPOSITORY,,}"
 
       - name: Output image digest
-        if: success() && github.event_name != 'pull_request'
+        if: success() && github.event_name == 'push'
+        env:
+          META_TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          echo "## Docker Image Published :rocket:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Docker Image Published :rocket:"
+            echo ""
+            printf '**Tags:** %s\n' "$META_TAGS"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -2,7 +2,7 @@
 
 **A warm, patient, step-by-step guide to running the Spatial Atlas project from absolute zero.**
 
-> Imagine you just got a brand-new computer and someone told you to "run this AI project." This tutorial assumes you know *nothing* about coding, terminals, or AI. We'll walk through every single click, every single word you type, and explain *why* you're doing it. Take a deep breath — you've got this!
+> Imagine you just got a brand-new computer and someone told you to "run this AI project." This tutorial assumes you know *nothing* about coding, terminals, or AI. We'll walk through every single click, every single word you type, and explain *why* you're doing it. Take a deep breath: you've got this!
 
 ---
 
@@ -15,7 +15,7 @@
 5. [Step 3: Download the Project](#step-3-download-the-project)
 6. [Step 4: Set Up Your Secret Key](#step-4-set-up-your-secret-key)
 7. [Step 5: Install the Project's Ingredients](#step-5-install-the-projects-ingredients)
-8. [Step 6: Run the Tests (Make Sure Everything Works)](#step-6-run-the-tests-make-sure-everything-works)
+8. [Step 6: Run the Local Checks](#step-6-run-the-local-checks)
 9. [Step 7: Start the Agent Server](#step-7-start-the-agent-server)
 10. [Step 8: Verify It's Working](#step-8-verify-its-working)
 11. [Step 9: Stop the Server](#step-9-stop-the-server)
@@ -30,11 +30,11 @@
 
 Think of **Spatial Atlas** as a very smart assistant that can do two things:
 
-**Job #1 — "Field Work Analyst" (FieldWorkArena)**
-Imagine you show it photos and documents from a factory or warehouse. It can look at those pictures and answer questions like: "Are the workers wearing hard hats?", "How far apart are the shelves?", or "Are there any safety violations?" It doesn't just guess — it builds a mental map (called a "scene graph") and *calculates* the answers with math.
+**Job #1: "Field Work Analyst" (FieldWorkArena adapter)**
+Imagine you show it photos and documents from a factory or warehouse. It can build a scene graph and calculate relationships from extracted positions. Those calculations are inspectable, but detection, depth, scale, and coordinate errors can still make an answer wrong. FieldWorkArena itself was inaccessible and is not evaluated here.
 
-**Job #2 — "Data Science Robot" (MLE-Bench)**
-Give it a data science competition (like ones from Kaggle, a website where data scientists compete), and it will automatically write Python code, train a machine learning model, and produce the answer file — all by itself. If its code crashes, it reads the error, fixes the code, and tries again (up to 3 times!).
+**Job #2: "Data Science Robot" (MLE-Bench handler)**
+Give it a data science competition and it can generate a Python pipeline. For safety, generated-code execution is disabled by default. An operator may enable it only inside an isolated, trusted worker. An enabled run receives at most 3 total attempts, each with a 600-second timeout. Dummy submissions are also disabled unless separately enabled.
 
 It communicates using a standard protocol called **A2A** (Agent-to-Agent), which is like a common language that AI agents use to talk to each other.
 
@@ -42,11 +42,11 @@ It communicates using a standard protocol called **A2A** (Agent-to-Agent), which
 
 ## 2. What You'll Need Before We Start
 
-Here's your shopping list. Don't worry — everything is free except the OpenAI API key (which costs a tiny bit of money per use):
+Here's your shopping list. Some model providers charge for API usage, so check the provider's current terms before running requests:
 
 | What | Why You Need It | How to Get It |
 |------|-----------------|---------------|
-| A computer | Mac, Windows, or Linux — any will do | You probably already have one! |
+| A computer | Mac, Windows, or Linux: any will do | You probably already have one! |
 | Internet connection | To download things | Your Wi-Fi or ethernet cable |
 | Python 3.12 or newer | The programming language the project is written in | We'll install it below |
 | `uv` | A tool that installs Python packages (think of it as an app store for code) | We'll install it below |
@@ -60,7 +60,7 @@ Here's your shopping list. Don't worry — everything is free except the OpenAI 
 The **Terminal** is a text-based way to talk to your computer. Instead of clicking icons, you type commands. It looks like a black or white box with blinking text.
 
 ### On a Mac:
-1. Press **Command + Space** on your keyboard (this opens Spotlight Search — it's the magnifying glass)
+1. Press **Command + Space** on your keyboard (this opens Spotlight Search: it's the magnifying glass)
 2. Type the word: `Terminal`
 3. Press **Enter**
 4. A window will appear with a blinking cursor. That's your Terminal!
@@ -133,7 +133,7 @@ git version 2.x.x
 ```
 
 **If you see an error:**
-- **Mac:** It will ask you to install "Command Line Tools" — click "Install" and wait
+- **Mac:** It will ask you to install "Command Line Tools": click "Install" and wait
 - **Windows:** Go to [git-scm.com](https://git-scm.com) and download the installer
 - **Linux:** Type `sudo apt install git`
 
@@ -143,7 +143,7 @@ git version 2.x.x
 
 ## Step 3: Download the Project
 
-Now we're going to download the Spatial Atlas code to your computer. This is called "cloning" — think of it as photocopying the entire project folder.
+Now we're going to download the Spatial Atlas code to your computer. This is called "cloning": think of it as photocopying the entire project folder.
 
 ### 3a. Choose where to put it
 
@@ -191,7 +191,7 @@ You should see a list of files including: `README.md`, `src`, `tests`, `pyprojec
 
 ## Step 4: Set Up Your Secret Key
 
-The project uses OpenAI's AI to think. To use OpenAI, you need an **API key** — think of it as a password that lets the project use the AI service.
+The project uses OpenAI's AI to think. To use OpenAI, you need an **API key**: think of it as a password that lets the project use the AI service.
 
 ### 4a. Get your OpenAI API key
 
@@ -200,12 +200,12 @@ The project uses OpenAI's AI to think. To use OpenAI, you need an **API key** �
 3. Click on **"API keys"** in the left sidebar
 4. Click **"Create new secret key"**
 5. Give it a name like "Spatial Atlas"
-6. **Copy the key** — it starts with `sk-` and is very long. **Save it somewhere safe!** You won't be able to see it again.
+6. **Copy the key**: it starts with `sk-` and is very long. **Save it somewhere safe!** You won't be able to see it again.
 7. You'll need to add some credits to your account (even $5 is enough to get started)
 
 ### 4b. Create your environment file
 
-The project looks for your secret key in a file called `.env` (the dot at the beginning means it's a hidden file — like a secret note).
+The project looks for your secret key in a file called `.env` (the dot at the beginning means it's a hidden file: like a secret note).
 
 Type:
 ```
@@ -238,17 +238,31 @@ OPENAI_API_KEY=sk-...
 4. The line should now look like: `OPENAI_API_KEY=sk-proj-abc123...your-real-key-here...`
 
 **To save and exit nano:**
-1. Press **Ctrl + O** (that's the letter O, not zero) — this means "save"
+1. Press **Ctrl + O** (that's the letter O, not zero): this means "save"
 2. Press **Enter** to confirm the filename
-3. Press **Ctrl + X** — this means "exit"
+3. Press **Ctrl + X**: this means "exit"
 
-> **Grandma tip:** You just created a secret note that tells the project your password for using the AI service. This file stays on YOUR computer and is never shared with anyone.
+> **Grandma tip:** You created a local configuration file for your API key. Never commit or upload `.env`. The client uses the key when contacting the configured model provider, so protect it like a password.
+
+### 4d. Keep generated-code execution disabled on your regular computer
+
+Do not add either of these settings for this beginner tutorial:
+
+```text
+ATLAS_ENABLE_MLEBENCH_CODE_EXECUTION=true
+ATLAS_TRUSTED_ISOLATED_WORKER=true
+ATLAS_ALLOW_DUMMY_SUBMISSION=true
+```
+
+The first two settings are both required before model-generated Python may run. They belong only in an isolated, disposable, trusted worker prepared by an operator. Enabling them also makes `ATLAS_BEARER_TOKEN` mandatory at server startup, and that token must contain at least 32 characters. The third setting permits a dummy answer file after all real attempts fail. These settings are off by default, so the server fails closed.
+
+The tutorial binds to loopback (`127.0.0.1`), so it may omit `ATLAS_BEARER_TOKEN` while code execution is disabled. A normal non-loopback server always requires a bearer token of at least 32 characters. `ATLAS_ALLOW_UNAUTHENTICATED_PUBLIC=true` is a test-only override and must not be used for normal deployment. If a token is configured, every non-read-only request must send it as a Bearer token. The server also rejects request bodies above the default 64 MiB limit and rejects requests above the default active concurrency limit of 4 with HTTP 503.
 
 ---
 
 ## Step 5: Install the Project's Ingredients
 
-Every coding project needs "dependencies" — other pieces of code that it uses. Think of dependencies like ingredients in a recipe. You need flour, eggs, and sugar before you can bake a cake.
+Every coding project needs "dependencies": other pieces of code that it uses. Think of dependencies like ingredients in a recipe. You need flour, eggs, and sugar before you can bake a cake.
 
 Type:
 ```
@@ -276,11 +290,11 @@ uv sync --extra test
 
 > This installs extra testing ingredients (like `pytest`).
 
-**This might take a minute or two** — it's downloading a lot of code. Be patient!
+**This might take a minute or two**: it's downloading a lot of code. Be patient!
 
 ---
 
-## Step 6: Run the Tests (Make Sure Everything Works)
+## Step 6: Run the Local Checks
 
 Before we turn on the real thing, let's make sure all the parts are working correctly. This is like checking that all the lights work before you open a store.
 
@@ -289,7 +303,7 @@ Type:
 uv run pytest -v
 ```
 
-> `pytest` is a testing tool. The `-v` flag means "verbose" — show me the details.
+> `pytest` is a testing tool. The `-v` flag means "verbose": show me the details.
 
 **What you should see:**
 ```
@@ -318,18 +332,18 @@ tests/test_agent.py::TestCostTracker::test_tracker_init PASSED
 tests/test_agent.py::TestCostTracker::test_budget_exceeded PASSED
 tests/test_agent.py::TestConfig::test_default_config PASSED
 
-============================== 21 passed in 0.87s ==============================
+============================== N passed in ... ==============================
 ```
 
-**The magic words you're looking for:** `21 passed` in green. If you see this, everything is working perfectly!
+**The magic words you're looking for:** a green summary ending in `passed`. The exact count changes as tests are added. A passing local suite checks the covered code paths; it does not establish benchmark accuracy or production readiness.
 
-> **Grandma tip:** Each "PASSED" is like a checkmark on a checklist. All 21 checkmarks mean the project is healthy and ready to run. Here's what each group tested:
-> - **DomainClassification** — Can the agent figure out if it's a factory-inspection task or a data-science task?
-> - **GoalParser** — Can it understand the question it's being asked?
-> - **AnswerFormatter** — Can it format its answers correctly (numbers, yes/no, JSON, lists)?
-> - **SpatialScene** — Can it do math with spatial locations (distances, nearby objects, safety gear)?
-> - **CostTracker** — Can it keep track of how much AI usage it's spending?
-> - **Config** — Are all the settings loaded correctly?
+> **Grandma tip:** Each "PASSED" is a checkmark for one tested behavior. Here are examples of the groups covered:
+> - **DomainClassification**: Can the agent figure out if it's a factory-inspection task or a data-science task?
+> - **GoalParser**: Can it understand the question it's being asked?
+> - **AnswerFormatter**: Can it format its answers correctly (numbers, yes/no, JSON, lists)?
+> - **SpatialScene**: Can it do math with spatial locations (distances, nearby objects, safety gear)?
+> - **CostTracker**: Can it keep track of how much AI usage it's spending?
+> - **Config**: Are all the settings loaded correctly?
 
 ---
 
@@ -343,15 +357,15 @@ uv run src/server.py --host 127.0.0.1 --port 9019
 ```
 
 Let's break that command down for you:
-- `uv run` — "Hey uv, please run this Python file for me"
-- `src/server.py` — The main file that starts the agent
-- `--host 127.0.0.1` — "Only listen on my own computer" (127.0.0.1 is your computer's address to itself, like looking in a mirror)
-- `--port 9019` — "Use door number 9019" (ports are like numbered doors that programs use to communicate)
+- `uv run`: "Hey uv, please run this Python file for me"
+- `src/server.py`: The main file that starts the agent
+- `--host 127.0.0.1`: "Only listen on my own computer" (127.0.0.1 is your computer's address to itself, like looking in a mirror)
+- `--port 9019`: "Use door number 9019" (ports are like numbered doors that programs use to communicate)
 
 **What you should see:**
 ```
 ============================================================
-Spatial Atlas — Purple Agent
+Spatial Atlas: Purple Agent
 ============================================================
 Server: http://127.0.0.1:9019/
 Agent Card: http://127.0.0.1:9019/
@@ -364,9 +378,9 @@ INFO:     Started server process
 INFO:     Uvicorn running on http://127.0.0.1:9019
 ```
 
-**The server is now running!** It's sitting there, patiently waiting for someone (or another AI agent) to send it a task.
+**The server is now running!** It can accept requests, but MLE generated-code execution remains disabled unless an operator explicitly enables it in an isolated, trusted worker.
 
-> **Grandma tip:** Your computer is now acting as a little hotel that's open for business at "address 127.0.0.1, room 9019." The agent is the concierge, waiting for guests (requests) to arrive. **The Terminal will look like it's "frozen" — that's normal!** The server is running and listening. Don't close this window!
+> **Grandma tip:** Your computer is now acting as a little hotel that's open for business at "address 127.0.0.1, room 9019." The agent is the concierge, waiting for guests (requests) to arrive. **The Terminal will look like it's "frozen": that's normal!** The server is running and listening. Don't close this window!
 
 ---
 
@@ -388,11 +402,11 @@ curl -s http://localhost:9019/.well-known/agent-card.json | python3 -m json.tool
 ```
 
 Let's break this down:
-- `curl` — A tool that fetches web pages from the command line (like a tiny web browser)
-- `-s` — "Be silent, don't show progress bars"
-- `http://localhost:9019` — "Talk to the server running on my own computer at door 9019"
-- `/.well-known/agent-card.json` — "Show me your ID card" (this is a standard endpoint for A2A agents)
-- `| python3 -m json.tool` — "Make the output pretty and readable"
+- `curl`: A tool that fetches web pages from the command line (like a tiny web browser)
+- `-s`: "Be silent, don't show progress bars"
+- `http://localhost:9019`: "Talk to the server running on my own computer at door 9019"
+- `/.well-known/agent-card.json`: "Show me your ID card" (this is a standard endpoint for A2A agents)
+- `| python3 -m json.tool`: "Make the output pretty and readable"
 
 **What you should see:**
 ```json
@@ -420,7 +434,7 @@ Let's break this down:
 }
 ```
 
-**If you see this, congratulations! Your Spatial Atlas agent is alive, running, and ready to accept tasks!**
+**If you see this, congratulations! Your Spatial Atlas server is alive and advertising its configured interfaces.** The agent card is a capability description, not evidence that a benchmark was executed successfully.
 
 > **Grandma tip:** You just asked the server "Who are you?" and it replied with its name, version, and a list of its skills. It's like calling a restaurant and hearing their automated message: "Welcome to Spatial Atlas! We can analyze factory photos or solve data science competitions."
 
@@ -443,13 +457,13 @@ INFO:     Application shutdown complete.
 INFO:     Finished server process
 ```
 
-That's it — the server has stopped. You can close all Terminal windows now.
+That's it: the server has stopped. You can close all Terminal windows now.
 
 ---
 
 ## Bonus: Run It With Docker
 
-Docker is like a shipping container for software. It packages the entire project — code, tools, settings, and all — into a single box that runs identically on any computer. If you want to deploy this on a server or share it, Docker is the way to go.
+Docker is like a shipping container for software. It packages the project and its dependencies to reduce environment differences. Host architecture, credentials, network access, and external services can still change behavior.
 
 ### Install Docker first
 
@@ -463,10 +477,10 @@ docker build -t spatial-atlas --platform linux/amd64 .
 ```
 
 Breaking this down:
-- `docker build` — "Build me a container"
-- `-t spatial-atlas` — "Name it 'spatial-atlas'"
-- `--platform linux/amd64` — "Build it for standard Linux servers" (required for the AgentBeats competition platform)
-- `.` — "Use the current folder as the source"
+- `docker build`: "Build me a container"
+- `-t spatial-atlas`: "Name it 'spatial-atlas'"
+- `--platform linux/amd64`: "Build it for standard Linux servers" (required for the AgentBeats competition platform)
+- `.`: "Use the current folder as the source"
 
 **This will take a few minutes** the first time (it's downloading a base operating system image and installing everything inside the container).
 
@@ -477,11 +491,11 @@ docker run -p 9019:9019 --env-file .env spatial-atlas --host 0.0.0.0
 ```
 
 Breaking this down:
-- `docker run` — "Start the container"
-- `-p 9019:9019` — "Connect my computer's door 9019 to the container's door 9019"
-- `--env-file .env` — "Pass my secret API key into the container"
-- `spatial-atlas` — "Use the container we just built"
-- `--host 0.0.0.0` — "Listen on all network addresses" (needed inside Docker)
+- `docker run`: "Start the container"
+- `-p 9019:9019`: "Connect my computer's door 9019 to the container's door 9019"
+- `--env-file .env`: "Pass my secret API key into the container"
+- `spatial-atlas`: "Use the container we just built"
+- `--host 0.0.0.0`: "Listen on all network addresses" (needed inside Docker)
 
 ### Verify it (same as before)
 
@@ -530,7 +544,7 @@ Don't panic! Here are the most common problems and their solutions:
 Let's take a tour of the project, file by file. Think of it as a tour of a factory where our AI agent is built.
 
 ### The Front Door: `src/server.py`
-This is where everything starts. When you run the server, this file sets up the "hotel" (web server) and tells visitors what services are available. It creates an "Agent Card" — like a business card that says "Hi, I'm Spatial Atlas, and I can do field research and ML engineering."
+This is where everything starts. When you run the server, this file sets up the "hotel" (web server) and tells visitors what services are available. It creates an "Agent Card": like a business card that says "Hi, I'm Spatial Atlas, and I can do field research and ML engineering."
 
 ### The Receptionist: `src/executor.py`
 When a request comes in through the A2A protocol, the Executor receives it. It checks: "Is this a new task? Is this task already done?" Then it creates an Agent to handle the work and monitors progress.
@@ -542,32 +556,37 @@ This is the core orchestrator. It receives the message, looks at its contents, a
 All the configurable knobs in one place: which AI models to use, how many retries to allow, how long to let code run, etc. Think of it as the thermostat panel for the whole system.
 
 ### The AI Connector: `src/llm.py`
-This is the phone line to the AI. When any part of the system needs to "think" using an AI model, it calls this file. It supports text generation, JSON output, and image analysis. It also tracks how much each call costs.
+This is the phone line to the AI. When any part of the system needs to use a model, it calls this file. It supports text generation, JSON output, and image analysis. It also records reported token and cost usage.
+
+### The Public Token Guard: `src/budgeted_llm.py`
+The public A2A Agent adds a concurrency-safe heuristic reservation before every model call. It estimates the prompt and reserves that estimate plus the allowed maximum completion. Concurrent model calls within one A2A execution cannot exceed the 150,000-token estimated reservation counter. A new execution gets a new counter, even for the same task ID. This is not exact tokenizer accounting and not a hard provider-token boundary, because provider tokenizers and image accounting vary. Provider-reported usage remains authoritative.
+
+Frozen benchmark drivers use the base observational client instead. Their batch token accounting comes from sealed journals, terminal counters, and result artifacts, so public request reservations and benchmark accounting must not be mixed.
 
 ### The Cost Department: `src/cost/`
-- **`tracker.py`** — Keeps a running tally of tokens used and money spent, like a utility meter.
-- **`router.py`** — Decides which AI model to use based on the task. Simple tasks get the cheap/fast model. Complex spatial reasoning gets the expensive/powerful one. This saves money!
+- **`tracker.py`**: Keeps a running tally of provider-reported tokens and estimated cost, like a utility meter. The public Agent combines this observation with the reservation guard above.
+- **`router.py`**: Chooses a configured model tier based on the task. The effect on cost and quality still needs measurement.
 
 ### The Entropy Engine: `src/entropy/engine.py`
-This is the "confidence checker." After the agent produces an answer, the entropy engine asks: "How sure are we about this?" If confidence is below 60%, it triggers a reflection round — the agent re-examines its reasoning and tries again. Think of it as a teacher double-checking their own work.
+This is the "confidence checker." After the agent produces an answer, the entropy engine asks: "How sure are we about this?" If confidence is below 60%, it triggers a reflection round and asks the agent to re-examine its reasoning. The threshold is a configured policy, not a reliability guarantee.
 
 ### The Field Work Team: `src/fieldwork/`
 This whole folder handles factory/warehouse/retail analysis:
-- **`handler.py`** — The team leader who orchestrates the pipeline
-- **`parser.py`** — Reads and understands the question being asked
-- **`vision.py`** — Looks at images, reads PDFs, and extracts frames from videos
-- **`detector.py`** — Uses computer vision to detect objects (people, hard hats, safety vests)
-- **`spatial.py`** — Builds a map of where everything is and computes distances with real math
-- **`reasoner.py`** — Combines all the evidence and formulates an answer
-- **`formatter.py`** — Makes sure the answer is in the exact format expected (JSON, number, yes/no, etc.)
+- **`handler.py`**: The team leader who orchestrates the pipeline
+- **`parser.py`**: Reads and understands the question being asked
+- **`vision.py`**: Looks at images, reads PDFs, and extracts frames from videos
+- **`detector.py`**: Uses computer vision to detect objects (people, hard hats, safety vests)
+- **`spatial.py`**: Builds a map of where everything is and computes distances with real math
+- **`reasoner.py`**: Combines all the evidence and formulates an answer
+- **`formatter.py`**: Makes sure the answer is in the exact format expected (JSON, number, yes/no, etc.)
 
 ### The Data Science Team: `src/mlebench/`
-This folder handles Kaggle-style competitions:
-- **`handler.py`** — The team leader who runs the end-to-end pipeline
-- **`analyzer.py`** — Looks at the competition data and figures out what kind of problem it is (classification? regression? NLP? vision? time series?)
-- **`codegen.py`** — Writes complete Python scripts to solve the competition
-- **`executor.py`** — Runs the generated code in a safe sandbox with a timeout
-- **`strategies/`** — Pre-built templates for different types of ML problems (XGBoost for tabular data, TF-IDF for text, etc.)
+This folder handles Kaggle-style competition inputs. Generated-code execution is disabled unless an operator sets both execution and isolated-worker flags, then starts the server with a bearer token of at least 32 characters:
+- **`handler.py`**: Enforces the opt-in gate, coordinates up to 3 total attempts, and fails if no real submission is produced. Dummy submissions require a separate opt-in.
+- **`analyzer.py`**: Looks at the competition data and proposes a task type (classification, regression, NLP, vision, or time series).
+- **`codegen.py`**: Writes a candidate Python pipeline.
+- **`executor.py`**: Runs an explicitly authorized pipeline in a bounded subprocess with a 600-second timeout. A subprocess is not a complete security sandbox.
+- **`strategies/`**: Provides templates for different types of ML problems (XGBoost for tabular data, TF-IDF for text, etc.).
 
 ---
 
@@ -579,11 +598,11 @@ This folder handles Kaggle-style competitions:
 | **API Key** | A password that lets you use an online service (like OpenAI) |
 | **Agent** | A piece of software that can receive tasks and complete them autonomously |
 | **Clone (git)** | Making a copy of a project from the internet to your computer |
-| **Curl** | A command-line tool for fetching web pages — like a tiny invisible web browser |
-| **Dependencies** | Other code libraries that a project needs to work — like ingredients in a recipe |
+| **Curl** | A command-line tool for fetching web pages: like a tiny invisible web browser |
+| **Dependencies** | Other code libraries that a project needs to work: like ingredients in a recipe |
 | **Docker** | A way to package software in a "container" so it runs the same everywhere |
 | **Endpoint** | A specific URL where a server listens for requests |
-| **Entropy** | A measure of uncertainty — how unsure the AI is about its answer |
+| **Entropy** | A measure of uncertainty: how unsure the AI is about its answer |
 | **Git** | A tool for downloading and tracking changes in code projects |
 | **JSON** | A way of formatting data that computers can easily read, using curly braces `{}` |
 | **Kaggle** | A website where data scientists compete to solve problems with data |
@@ -592,11 +611,11 @@ This folder handles Kaggle-style competitions:
 | **Model Tier** | Different AI models for different needs: "fast" (cheap, simple tasks), "standard" (normal tasks), "strong" (hard tasks) |
 | **Port** | A numbered "door" that programs use to communicate on a network |
 | **Purple Agent** | An agent that handles both benchmarks (FieldWork + MLE-Bench) |
-| **Pytest** | A tool for testing Python code — it runs checks to make sure everything works |
+| **Pytest** | A tool for testing Python code: it runs checks to make sure everything works |
 | **Scene Graph** | A structured map of objects and their relationships in a space |
 | **Server** | A program that runs continuously, waiting for requests to process |
 | **Terminal** | The text-based interface where you type commands to your computer |
-| **UV** | A fast Python package manager — it installs and manages code libraries |
+| **UV** | A fast Python package manager: it installs and manages code libraries |
 | **.env File** | A hidden file that stores secret configuration like API keys |
 
 ---
@@ -624,4 +643,4 @@ uv run pytest -v
 
 ---
 
-*You did it! You just ran a competition-grade AI research agent. Not bad for someone who "doesn't know computers," right?*
+*You did it! You started the local server and ran its current automated checks.*

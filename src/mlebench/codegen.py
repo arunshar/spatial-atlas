@@ -1,12 +1,11 @@
 """
-Spatial Atlas — ML Code Generator
+Spatial Atlas: ML code generator
 
 Generates complete, self-contained Python scripts for MLE-Bench competitions.
 Uses strategy templates + LLM to produce runnable ML pipelines.
 """
 
 import logging
-import re
 
 from llm import LLMClient
 from mlebench.analyzer import CompetitionAnalysis
@@ -130,7 +129,7 @@ FIX_PROMPT = """The ML pipeline script below failed with an error. Fix the scrip
 {file_listing}
 
 ## Instructions
-- Fix ONLY the error — don't rewrite the whole script unless necessary
+- Fix ONLY the error; do not rewrite the whole script unless necessary
 - If a file doesn't exist, check the data directory listing for the correct filename
 - If a column doesn't exist, print available columns first, then adapt
 - If a library is missing, replace with an available one (pandas, numpy, sklearn, xgboost, lightgbm)
@@ -262,11 +261,10 @@ class MLCodeGenerator:
         code = code.strip()
         # Remove markdown code fences
         if code.startswith("```python"):
-            code = code[len("```python"):]
+            code = code[len("```python") :]
         elif code.startswith("```"):
             code = code[3:]
-        if code.endswith("```"):
-            code = code[:-3]
+        code = code.removesuffix("```")
         code = code.strip()
 
         # Ensure there's a newline at the end

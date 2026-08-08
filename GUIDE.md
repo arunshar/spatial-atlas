@@ -1,4 +1,4 @@
-# Spatial Atlas — Ultra-Fine Step-by-Step Running Guide
+# Spatial Atlas: Ultra-Fine Step-by-Step Running Guide
 
 ## Prerequisites
 
@@ -68,7 +68,7 @@ uv run src/server.py --host 127.0.0.1 --port 9019
 You should see:
 ```
 ============================================================
-Spatial Atlas — Purple Agent
+Spatial Atlas: Purple Agent
 ============================================================
 Server: http://127.0.0.1:9019/
 Agent Card: http://127.0.0.1:9019/
@@ -147,7 +147,7 @@ docker tag spatial-atlas ghcr.io/arunshar/spatial-atlas:latest
 docker push ghcr.io/arunshar/spatial-atlas:latest
 ```
 
-Or let GitHub Actions do it automatically — just push a tag:
+Or let GitHub Actions do it automatically: just push a tag:
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
@@ -187,6 +187,6 @@ ghcr.io/arunshar/spatial-atlas:latest
 | `ModuleNotFoundError: litellm` | Run `uv sync` first |
 | `OPENAI_API_KEY not set` | Create `.env` file with your key |
 | Docker build fails | Ensure `uv.lock` exists: `uv lock` |
-| "Method Not Allowed" in browser | Expected — the root `/` doesn't serve HTML. Check `/.well-known/agent-card.json` instead |
+| "Method Not Allowed" in browser | Expected; the root `/` doesn't serve HTML. Check `/.well-known/agent-card.json` instead |
 | Port 9019 in use | Change port: `uv run src/server.py --port 9020` |
 | Tests fail with import errors | Run from project root with `uv run pytest` |

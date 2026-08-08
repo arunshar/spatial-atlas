@@ -1,16 +1,18 @@
 """
-Spatial Atlas — A2A AgentExecutor
+Spatial Atlas: A2A AgentExecutor
 
 Routes incoming A2A requests to per-context Agent instances.
 Follows the standard AgentBeats executor pattern.
 """
+
+import logging
+import uuid
 
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
 from a2a.types import (
     InvalidRequestError,
-    Task,
     TaskState,
     UnsupportedOperationError,
 )
@@ -20,7 +22,9 @@ from a2a.utils import (
 )
 from a2a.utils.errors import ServerError
 
-from agent import Agent
+from agent import Agent, AgentTaskError
+
+logger = logging.getLogger("spatial-atlas.executor")
 
 
 TERMINAL_STATES = {
@@ -32,8 +36,8 @@ TERMINAL_STATES = {
 
 
 class Executor(AgentExecutor):
-    def __init__(self):
-        self.agents: dict[str, Agent] = {}
+    def __init__(self, agent_factory=Agent):
+        self._agent_factory = agent_factory
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         msg = context.message
@@ -57,19 +61,27 @@ class Executor(AgentExecutor):
         await updater.start_work()
 
         try:
-            agent = self.agents.get(context_id)
-            if not agent:
-                agent = Agent()
-                self.agents[context_id] = agent
-
+            agent = self._agent_factory()
             await agent.run(msg, updater)
             if not updater._terminal_state_reached:
                 await updater.complete()
         except Exception as e:
-            print(f"Task failed with agent error: {e}")
+            if isinstance(e, AgentTaskError):
+                public_message = str(e)
+                reference = e.reference
+            else:
+                reference = uuid.uuid4().hex[:12]
+                public_message = (
+                    f"Spatial Atlas could not complete this task. Reference: {reference}"
+                )
+            logger.error(
+                "Task failed [reference=%s, exception_type=%s]",
+                reference,
+                type(e).__name__,
+            )
             await updater.failed(
                 new_agent_text_message(
-                    f"Agent error: {e}",
+                    public_message,
                     context_id=context_id,
                     task_id=task.id,
                 )

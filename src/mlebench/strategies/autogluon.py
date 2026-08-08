@@ -1,10 +1,10 @@
 """Strategy template for AutoGluon-based tabular competitions."""
 
-AUTOGLUON_TEMPLATE = '''
+AUTOGLUON_TEMPLATE = """
 # === AutoGluon Strategy (AutoML Ensemble) ===
 # AutoGluon dominates Kaggle tabular competitions with zero tuning.
 # It automatically ensembles LightGBM, CatBoost, XGBoost, neural nets,
-# and stacking — all within a time budget.
+# and stacking, all within a time budget.
 #
 # This strategy is the highest-performing option for tabular data.
 #
@@ -128,4 +128,4 @@ except ImportError:
     submission[TARGET] = predictions
     submission.to_csv("SUBMISSION_PATH", index=False)
     print(f"Fallback submission saved: {submission.shape}")
-'''
+"""

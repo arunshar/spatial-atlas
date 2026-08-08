@@ -1,5 +1,5 @@
 """
-Spatial Atlas — Unified LLM Interface
+Spatial Atlas: Unified LLM Interface
 
 Wraps litellm for multi-provider model access with cost tracking.
 Supports text generation, JSON mode, and vision analysis.
@@ -27,6 +27,12 @@ class LLMClient:
     def _get_model(self, model_tier: str) -> str:
         return self.config.model_tiers.get(model_tier, self.config.standard_model)
 
+    def _apply_chat_template_options(self, kwargs: dict) -> None:
+        """Apply optional vLLM chat-template controls to one request."""
+        enable_thinking = self.config.llm_enable_thinking
+        if enable_thinking is not None:
+            kwargs["extra_body"] = {"chat_template_kwargs": {"enable_thinking": enable_thinking}}
+
     async def generate(
         self,
         prompt: str,
@@ -53,10 +59,17 @@ class LLMClient:
         }
         if json_mode:
             kwargs["response_format"] = {"type": "json_object"}
+        self._apply_chat_template_options(kwargs)
 
         try:
-            response = litellm.completion(**kwargs)
-            self.cost_tracker.track(response)
+            response = await litellm.acompletion(**kwargs)
+            self.cost_tracker.track(
+                response,
+                role=model_tier,
+                model_tier=model_tier,
+                call_kind="generate",
+                configured_max_tokens=max_tokens,
+            )
             content = response.choices[0].message.content or ""
             logger.debug(f"LLM [{model_tier}] generated {len(content)} chars")
             return content
@@ -91,13 +104,21 @@ class LLMClient:
         ]
 
         try:
-            response = litellm.completion(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
+            kwargs: dict = {
+                "model": model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            self._apply_chat_template_options(kwargs)
+            response = await litellm.acompletion(**kwargs)
+            self.cost_tracker.track(
+                response,
+                role=model_tier,
+                model_tier=model_tier,
+                call_kind="vision_analyze",
+                configured_max_tokens=max_tokens,
             )
-            self.cost_tracker.track(response)
             content = response.choices[0].message.content or ""
             logger.debug(f"Vision analysis generated {len(content)} chars")
             return content
@@ -125,10 +146,17 @@ class LLMClient:
         }
         if json_mode:
             kwargs["response_format"] = {"type": "json_object"}
+        self._apply_chat_template_options(kwargs)
 
         try:
-            response = litellm.completion(**kwargs)
-            self.cost_tracker.track(response)
+            response = await litellm.acompletion(**kwargs)
+            self.cost_tracker.track(
+                response,
+                role=model_tier,
+                model_tier=model_tier,
+                call_kind="generate_with_messages",
+                configured_max_tokens=max_tokens,
+            )
             return response.choices[0].message.content or ""
         except Exception as e:
             logger.error(f"LLM generation failed: {e}")

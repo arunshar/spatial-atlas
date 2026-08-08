@@ -1,5 +1,5 @@
 """
-Spatial Atlas — Multimodal Vision Pipeline
+Spatial Atlas: multimodal vision pipeline
 
 Processes all file types from FieldWorkArena:
 - Images (JPEG) → Vision model detailed description
@@ -16,7 +16,6 @@ import logging
 import tempfile
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
 from pypdf import PdfReader
 
@@ -27,7 +26,7 @@ logger = logging.getLogger("spatial-atlas.fieldwork.vision")
 # Vision prompt optimized for spatial/safety analysis
 VISION_PROMPT = (
     "Describe this image in detail for a safety and operations analyst. Include:\n"
-    "1. ALL objects, people, vehicles, and equipment — with their approximate positions "
+    "1. ALL objects, people, vehicles, and equipment, with their approximate positions "
     "(left, right, center, foreground, background, distances if estimable)\n"
     "2. Safety equipment present or absent (PPE: hard hats, safety vests, goggles, gloves)\n"
     "3. Environment type (factory floor, warehouse aisle, loading dock, retail area)\n"
@@ -58,9 +57,7 @@ class VisionPipeline:
         # Lazy-loaded local detector for structured preprocessing
         self._detector = None
 
-    async def process_file(
-        self, name: str, mime_type: str, data: str | bytes
-    ) -> str:
+    async def process_file(self, name: str, mime_type: str, data: str | bytes) -> str:
         """Convert any file attachment to text context."""
         logger.info(f"Processing file: {name} ({mime_type})")
 
@@ -95,6 +92,7 @@ class VisionPipeline:
         detection_text = ""
         try:
             from fieldwork.detector import get_detector
+
             detector = get_detector()
             detection = await detector.detect(image_bytes)
             detection_text = detection.to_structured_text()
@@ -109,7 +107,7 @@ class VisionPipeline:
             prompt = (
                 f"{VISION_PROMPT}\n\n"
                 f"IMPORTANT: A detection model has already identified the following objects. "
-                f"Use these EXACT counts — do NOT re-count:\n{detection_text}"
+                f"Use these EXACT counts; do NOT re-count:\n{detection_text}"
             )
 
         description = await self.llm.vision_analyze(
@@ -136,8 +134,11 @@ class VisionPipeline:
             full_text = "\n\n".join(text_parts) if text_parts else "[Empty PDF]"
             return f"[PDF: {name}]\n{full_text}"
         except Exception as e:
-            logger.error(f"PDF extraction failed for {name}: {e}")
-            return f"[PDF: {name}] Error: {e}"
+            logger.error(
+                "PDF extraction failed [exception_type=%s]",
+                type(e).__name__,
+            )
+            return f"[PDF: {name}] Error: extraction failed"
 
     async def _process_video(self, name: str, data: str | bytes) -> str:
         """Extract frames from video and analyze key frames."""
@@ -148,9 +149,7 @@ class VisionPipeline:
             if not frames:
                 return f"[Video: {name}] No frames extracted"
 
-            descriptions = [
-                f"Video file: {name} ({len(frames)} frames extracted)"
-            ]
+            descriptions = [f"Video file: {name} ({len(frames)} frames extracted)"]
 
             # Analyze key frames (not all, to save tokens)
             analysis_frames = self._select_key_frames(frames)
@@ -163,8 +162,11 @@ class VisionPipeline:
 
             return f"[Video: {name}]\n" + "\n\n".join(descriptions)
         except Exception as e:
-            logger.error(f"Video processing failed for {name}: {e}")
-            return f"[Video: {name}] Error processing video: {e}"
+            logger.error(
+                "Video processing failed [exception_type=%s]",
+                type(e).__name__,
+            )
+            return f"[Video: {name}] Error: processing failed"
 
     def _process_text(self, name: str, data: str | bytes) -> str:
         """Read text file content."""

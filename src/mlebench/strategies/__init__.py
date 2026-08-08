@@ -2,13 +2,12 @@
 Strategy template selector for MLE-Bench competitions.
 """
 
-from mlebench.strategies.tabular import TABULAR_TEMPLATE
-from mlebench.strategies.nlp import NLP_TEMPLATE
-from mlebench.strategies.vision_ml import VISION_TEMPLATE
-from mlebench.strategies.timeseries import TIMESERIES_TEMPLATE
-from mlebench.strategies.general import GENERAL_TEMPLATE
 from mlebench.strategies.autogluon import AUTOGLUON_TEMPLATE
-
+from mlebench.strategies.general import GENERAL_TEMPLATE
+from mlebench.strategies.nlp import NLP_TEMPLATE
+from mlebench.strategies.tabular import TABULAR_TEMPLATE
+from mlebench.strategies.timeseries import TIMESERIES_TEMPLATE
+from mlebench.strategies.vision_ml import VISION_TEMPLATE
 
 STRATEGY_MAP = {
     "tabular": AUTOGLUON_TEMPLATE,  # AutoGluon is the default for tabular (falls back to LightGBM)

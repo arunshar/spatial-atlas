@@ -1,5 +1,5 @@
 """
-Spatial Atlas — Entropy-Guided Reasoning Engine
+Spatial Atlas: Entropy-Guided Reasoning Engine
 
 Estimates information gain to optimize reasoning trajectories.
 Builds on the entropy-guided approach from Sprint 1.

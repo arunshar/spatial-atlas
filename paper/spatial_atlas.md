@@ -8,7 +8,7 @@ arunshar@umn.edu
 
 ## Abstract
 
-We introduce *compute-grounded reasoning* (CGR), a design paradigm for spatial-aware research agents in which every answerable sub-problem is resolved by deterministic computation before a language model is asked to generate. Spatial Atlas instantiates CGR as a single Agent-to-Agent (A2A) server that handles two challenging benchmarks: FieldWorkArena, a multimodal spatial question-answering benchmark spanning factory, warehouse, and retail environments, and MLE-Bench, a suite of 75 Kaggle machine learning competitions requiring end-to-end ML engineering. A structured spatial scene graph engine extracts entities and relations from vision descriptions, computes distances and safety violations deterministically, then feeds computed facts to large language models, thereby avoiding hallucinated spatial reasoning. Entropy-guided action selection maximizes information gain per step and routes queries across a three-tier frontier model stack (OpenAI + Anthropic). A self-healing ML pipeline with strategy-aware code generation, a score-driven iterative refinement loop, and a prompt-based leak audit registry round out the system. We evaluate across both benchmarks and show that CGR yields competitive accuracy while maintaining interpretability through structured intermediate representations and deterministic spatial computations.
+We introduce *compute-grounded reasoning* (CGR), a design paradigm for spatial-aware research agents in which answerable sub-problems are computed from explicit intermediate representations before a language model generates a response. Spatial Atlas instantiates CGR as an Agent-to-Agent (A2A) server with spatial question-answering and machine-learning engineering handlers. A structured spatial scene graph computes relationships from extracted entities. The ML path supports strategy-aware code generation, validation-score parsing, bounded refinement, and leak-audit prompts, but generated-code execution is disabled by default and requires explicit opt-in inside an isolated, trusted worker. This paper describes the implemented architecture and its evaluation protocol. It does not report FieldWorkArena results because the benchmark data were not accessible, and it intentionally omits performance, cost, and latency numbers that are not backed by reproducible run artifacts.
 
 ---
 
@@ -18,19 +18,19 @@ The development of general-purpose research agents capable of operating across d
 
 Most existing agent architectures treat these benchmarks as independent problems, developing specialized systems for each (Yang et al., 2024; Hong et al., 2024). This fragmentation wastes shared infrastructure and misses opportunities for architectural insights that transfer across domains. For instance, the structured reasoning required to answer spatial questions ("How many pallets are within 3 meters of the emergency exit?") shares fundamental properties with the systematic hypothesis testing needed to select effective ML strategies ("Which feature engineering approach maximizes validation accuracy for this tabular dataset?").
 
-We present **Spatial Atlas**, a spatial-aware research agent that addresses both benchmarks through a single Agent-to-Agent (A2A) protocol server (Google, 2024). The system is organized around a design paradigm we call *compute-grounded reasoning* (CGR): wherever a sub-problem admits a deterministic solution, compute the answer first and supply it as a fact to the language model rather than asking the model to generate it. Our architecture instantiates CGR through five key contributions:
+We present **Spatial Atlas**, a spatial-aware research agent that exposes spatial question-answering and ML-engineering handlers through a single Agent-to-Agent (A2A) protocol server (Google, 2024). FieldWorkArena motivated the original spatial adapter, but the benchmark is not part of the reported evaluation because its data were not accessible. The system is organized around a design paradigm we call *compute-grounded reasoning* (CGR): wherever a sub-problem admits a deterministic solution, compute the answer first and supply it as a fact to the language model rather than asking the model to generate it. Our architecture instantiates CGR through five key contributions:
 
-1. **Spatial Scene Graph Engine**: A structured representation that extracts entities and relations from vision model descriptions, computes spatial relationships deterministically, and produces factual summaries for LLM consumption, eliminating hallucinated spatial reasoning.
+1. **Spatial Scene Graph Engine**: A structured representation that extracts entities and relations from vision model descriptions, computes spatial relationships, and exposes the provenance of those computations. Perception errors can still propagate into the graph.
 
-2. **Entropy-Guided Reasoning**: An information-theoretic framework that estimates information gain for candidate actions, enabling cost-efficient reasoning by routing queries to appropriate model tiers and triggering reflection only when confidence is low.
+2. **Entropy-Guided Reasoning**: An information-theoretic routing policy that estimates information gain for candidate actions and triggers reflection when confidence is low. Its accuracy and cost effects remain evaluation questions.
 
-3. **Self-Healing ML Pipeline**: A strategy-aware code generation system with automatic error detection, diagnosis, and repair, ensuring robust competition submissions even when initial approaches fail.
+3. **Fail-Closed ML Pipeline**: A strategy-aware code generation system whose execution path requires execution opt-in, isolated-worker attestation, and authenticated server startup. An enabled run permits at most 3 total attempts with a 600-second timeout per attempt; dummy submissions require a separate opt-in.
 
-4. **Score-Driven Refinement**: An iterative improvement loop that parses machine-readable validation scores from pipeline output and uses a cross-provider strong model to propose targeted improvements, keeping whichever submission scores higher.
+4. **Score-Driven Refinement**: An iterative loop that parses machine-readable validation scores, asks the configured strong tier for a revision, and retains the revision only when its parsed score is better.
 
-5. **Leak Audit Registry**: A prompt-based exploit framework that detects train/test data leakage at codegen time and injects targeted hints so the strong model can adapt the exploit to the actual data.
+5. **Leak Audit Registry**: A prompt-based framework that asks generated pipelines to check common train/test leakage patterns and can inject task-specific hints.
 
-The unifying principle behind these contributions is compute-grounded reasoning: wherever possible, we compute answers deterministically from structured representations rather than asking language models to generate them directly. This design philosophy yields more reliable, interpretable, and cost-efficient agent behavior across both evaluation domains, and we argue that CGR defines a general class of *spatial-aware research agents* whose reliability stems from grounding generation in computation.
+The unifying principle behind these contributions is compute-grounded reasoning: wherever possible, we compute answers from structured representations rather than asking language models to generate them directly. This design improves inspectability because intermediate inputs and computations can be audited. Reliability, accuracy, latency, and cost must still be established through the planned evaluation.
 
 ---
 
@@ -42,7 +42,7 @@ The rapid development of LLM-based agent frameworks has produced systems spannin
 
 ### Spatial Reasoning in Vision-Language Models
 
-Vision-language models (VLMs) exhibit well-documented weaknesses in spatial reasoning tasks, particularly object counting, distance estimation, and relative positioning (Liu et al., 2024; Chen et al., 2024). Studies have shown that VLMs frequently hallucinate spatial relationships when asked to reason about complex scenes (Li et al., 2023). SpatialVLM (Chen et al., 2024) attempts to address this through specialized spatial training data, while our approach sidesteps the problem entirely by extracting structured representations and computing spatial facts deterministically.
+Vision-language models (VLMs) exhibit well-documented weaknesses in spatial reasoning tasks, particularly object counting, distance estimation, and relative positioning (Liu et al., 2024; Chen et al., 2024). Studies have shown that VLMs frequently hallucinate spatial relationships when asked to reason about complex scenes (Li et al., 2023). SpatialVLM (Chen et al., 2024) attempts to address this through specialized spatial training data. Our approach instead moves relationship computation into an explicit representation, while remaining dependent on the accuracy of entity extraction and geometric measurement.
 
 ### Scene Graphs for Visual Reasoning
 
@@ -50,7 +50,7 @@ Scene graph representations, popularized by Visual Genome (Krishna et al., 2017)
 
 ### AutoML and Competition-Oriented Systems
 
-Automated machine learning frameworks such as AutoGluon (Erickson et al., 2020), Auto-sklearn (Feurer et al., 2019), and AutoKeras (Jin et al., 2023) aim to automate the end-to-end ML pipeline. More recent work leverages LLMs for ML code generation (Hollmann et al., 2024), combining the flexibility of natural language understanding with systematic hyperparameter search. Our self-healing ML pipeline builds on these foundations by adding strategy-aware code generation and automatic error recovery.
+Automated machine learning frameworks such as AutoGluon (Erickson et al., 2020), Auto-sklearn (Feurer et al., 2019), and AutoKeras (Jin et al., 2023) aim to automate the end-to-end ML pipeline. More recent work leverages LLMs for ML code generation (Hollmann et al., 2024), combining the flexibility of natural language understanding with systematic hyperparameter search. Our ML path adds strategy-aware code generation and bounded repair attempts behind a fail-closed execution gate.
 
 ### A2A Protocol and Agent Interoperability
 
@@ -85,7 +85,7 @@ Spatial Atlas operates as a spatial-aware research agent exposed via a dual-doma
 +------+------+        +-------+------+
        |                       |
 +------v------+        +-------v------+
-| Spatial     |        | Self-Healing |
+| Spatial     |        | Fail-Closed  |
 | Scene Graph |        | ML Pipeline  |
 | Engine      |        |              |
 +------+------+        +-------+------+
@@ -107,33 +107,33 @@ Spatial Atlas operates as a spatial-aware research agent exposed via a dual-doma
 
 ### Domain Classification
 
-The domain classifier operates on task metadata and attachment types. FieldWorkArena tasks are identified by their structured goal format containing explicit question text, image references, and scoring metadata. MLE-Bench tasks arrive with `tar.gz` attachments containing competition datasets and description files. This classification is deterministic and does not require an LLM call, ensuring zero additional latency or cost at the routing stage.
+The domain classifier operates on task metadata and attachment types. The FieldWorkArena adapter recognizes its documented goal shape, while MLE-Bench tasks arrive with `tar.gz` attachments containing competition datasets and description files. Classification uses deterministic rules rather than an LLM call. The implementation has not been benchmarked for routing latency or cost.
 
 ### Shared Infrastructure
 
 Both domain handlers share several critical infrastructure components.
 
-**LiteLLM Multi-Provider Wrapper.** We use LiteLLM (BerriAI, 2024) to abstract across multiple LLM providers, enabling transparent failover and provider-specific optimizations. All LLM calls flow through this wrapper, ensuring consistent token counting, cost tracking, and retry logic.
+**LiteLLM Multi-Provider Wrapper.** We use LiteLLM (BerriAI, 2024) to abstract across multiple LLM providers and record provider-reported usage when available. Provider reports and local estimates are not treated as exact tokenizer-equivalent counts.
 
 **Three-Tier Frontier Model Routing.** We define three model tiers, *fast*, *standard*, and *strong*, each mapped to a distinct model drawn from two frontier providers. The routing decision is based on task complexity, estimated by the entropy-guided reasoning engine (Section 5).
 
-| Tier     | Model                       | Cost (per 1M tokens) | Typical Latency |
-|----------|-----------------------------|---------------------|-----------------|
-| Fast     | GPT-4.1-mini                | $0.40 / $1.60      | ~1s             |
-| Standard | GPT-4.1                     | $2.00 / $8.00      | ~3s             |
-| Strong   | Claude Opus 4.6 (Anthropic) | $15.00 / $75.00    | ~6s             |
+| Tier     | Model                       | Intended role                         |
+|----------|-----------------------------|---------------------------------------|
+| Fast     | GPT-4.1-mini                | Classification and simple extraction  |
+| Standard | GPT-4.1                     | Primary reasoning and code generation |
+| Strong   | GPT-4.1                     | Reflection and refinement             |
 
-**Table 1:** Model tier configuration. Each tier balances capability against cost and latency. Fast and Standard use OpenAI; Strong uses Anthropic.
+**Table 1:** Configured model tiers and intended roles. This is a design table, not a performance or cost result.
 
-Earlier iterations of the system collapsed Standard and Strong onto the same OpenAI model, leaving the router effectively two-tier. Splitting Strong onto Anthropic Claude Opus 4.6 places a genuine frontier model on the narrow set of tasks that empirically move evaluation score (reflection in FieldWorkArena, iterative refinement in MLE-Bench) while keeping the higher marginal price bounded by the entropy-guided escalation policy (Section 5). In ablations, roughly 8--12% of FieldWorkArena questions and roughly 40--55% of MLE-Bench refinement iterations trigger the Strong tier, holding average cost per task below the all-Standard baseline.
+The default configuration maps Standard and Strong to GPT-4.1. Operators can override `ATLAS_STRONG_MODEL` to test a different provider. Same-model and cross-provider refinement remain planned ablations; no accuracy or cost result is claimed here.
 
-**Cost Tracking and Token Budgets.** Each task is allocated a token budget of 150K tokens. The cost tracker monitors cumulative consumption across all LLM calls within a task, enabling the entropy-guided system to make cost-aware routing decisions.
+**Public Agent Token Reservation.** The public A2A `Agent` uses a concurrency-safe `BudgetedLLMClient` against the legacy configuration field `Config.max_tokens_per_task = 150_000`. Before each provider call, it heuristically estimates prompt usage and reserves that estimate plus the allowed maximum completion under a lock. Concurrent calls within one A2A execution cannot oversubscribe the estimated reservation counter. A new execution receives a fresh counter, even for the same A2A task ID. This is not exact tokenizer accounting and not a hard provider-token boundary, because provider tokenizers and image accounting vary. Provider-reported usage remains authoritative. Frozen benchmark drivers retain the base observational `LLMClient`; their batch usage is reconciled from immutable journals, terminal counters, and result artifacts.
 
 ---
 
 ## 4. Spatial Scene Graph Engine
 
-The spatial scene graph engine is the cornerstone of our approach to FieldWorkArena tasks. It addresses a fundamental limitation of current vision-language models: their inability to reliably perform spatial reasoning, counting, and distance estimation (Chen et al., 2024; Li et al., 2023).
+The spatial scene graph engine is the cornerstone of the spatial question-answering path and the unexecuted FieldWorkArena adapter. It is designed to make spatial computations explicit, but it does not remove errors introduced by perception, depth estimation, object matching, or coordinate assumptions.
 
 ### Problem Formulation
 
@@ -168,7 +168,7 @@ The fact sheet is then provided to the LLM alongside the original question, enab
 
 ### Scoring Functions
 
-FieldWorkArena employs six evaluation metrics, each implemented as a deterministic scoring function. Each task specifies one scoring function that produces a binary 0/1 score.
+The local FieldWorkArena adapter implements six scoring interfaces based on the available task specification. Because the gated benchmark data were not accessible, these interfaces have not been validated against an official FieldWorkArena evaluation run and are retained as dormant compatibility code.
 
 | Metric           | Description                                                              |
 |------------------|--------------------------------------------------------------------------|
@@ -203,7 +203,7 @@ Given a set of candidate actions {c_1, ..., c_m} (e.g., examining a specific reg
 c* = argmax_j E[ H(A | K_t) - H(A | K_t U obs(c_j)) ]
 ```
 
-In practice, we approximate this using the LLM's confidence estimates. Each candidate answer a produced by the model is accompanied by a confidence score sigma(a) in [0, 1], estimated through calibrated self-assessment prompting.
+In practice, we approximate this using self-reported model confidence. Each candidate answer a is accompanied by a score sigma(a) in [0, 1] from a prompting heuristic; this score has not been demonstrated to be calibrated.
 
 ### Reflection and Confidence Thresholds
 
@@ -218,7 +218,7 @@ where tau = 0.6 is the reflection threshold. During reflection, the agent re-exa
 
 ### Cost-Efficiency Through Model Routing
 
-The entropy framework informs model tier selection. For questions where the fast tier produces high-confidence answers (sigma > 0.8), no escalation occurs. When confidence is moderate (0.6 <= sigma <= 0.8), the standard tier is engaged. Only when repeated reasoning fails to achieve adequate confidence is the strong tier invoked. This progressive escalation reduces average cost per task while maintaining answer quality.
+The entropy framework informs model tier selection. For questions where the fast tier produces high-confidence answers (sigma > 0.8), no escalation occurs. When confidence is moderate (0.6 <= sigma <= 0.8), the standard tier is engaged. Only when repeated reasoning fails to achieve adequate confidence is the strong tier invoked. This progressive policy is intended to limit unnecessary escalation; its cost and quality effects remain part of the planned evaluation.
 
 ### Algorithm: Entropy-Guided Reasoning
 
@@ -237,9 +237,9 @@ Input: Task T, knowledge state K_0, budget B, threshold tau
 
 ---
 
-## 6. Self-Healing ML Pipeline
+## 6. Fail-Closed ML Pipeline
 
-The MLE-Bench handler implements a self-healing ML pipeline that transforms competition descriptions into runnable solutions through strategy-aware code generation and automatic error recovery.
+The MLE-Bench handler generates candidate pipelines from competition descriptions. Execution is fail closed: it requires both `ATLAS_ENABLE_MLEBENCH_CODE_EXECUTION=true` and `ATLAS_TRUSTED_ISOLATED_WORKER=true`. Server startup then requires `ATLAS_BEARER_TOKEN` containing at least 32 characters.
 
 ### Competition Analysis
 
@@ -260,29 +260,29 @@ For each competition, the pipeline generates a complete, self-contained Python s
 
 1. Loads and preprocesses the training data according to the detected task type.
 2. Implements the selected strategy with appropriate hyperparameters.
-3. Trains the model with cross-validation for robust evaluation.
+3. Trains the model with cross-validation when the generated strategy supports it.
 4. Generates predictions on the test set in the required submission format.
 5. Writes a valid `submission.csv` to the expected output location.
 
-The generated script is executed in a sandboxed subprocess with a configurable timeout (default: 300 seconds), capturing both stdout and stderr for monitoring.
+After explicit authorization, the generated script runs in a bounded subprocess with a 600-second timeout. The subprocess captures bounded stdout and stderr, uses a minimal environment, and is terminated as a process group on timeout or cancellation. These controls are defense in depth, not a complete security sandbox.
 
-### Self-Healing Loop
+### Bounded Repair Loop
 
-When execution fails, the self-healing mechanism activates:
+When an explicitly authorized execution fails, the repair mechanism may:
 
 1. **Error Classification**: Parse stderr to identify the error type (import error, data shape mismatch, memory overflow, timeout, etc.).
 2. **Targeted Fix**: Generate a minimal code patch addressing the specific error, using the LLM with the error context and original code.
 3. **Re-execution**: Run the patched script with the same timeout constraints.
 
-This loop repeats up to 3 iterations. If all iterations fail, a *dummy submission fallback* generates a valid `submission.csv` using simple heuristics (e.g., predicting the mode for classification, the mean for regression), ensuring the agent always produces a scoreable output.
+`max_code_iterations = 3` means 3 total attempts, including the initial attempt. If all attempts fail, the task fails by default. A schema-shaped dummy submission is produced only when the operator separately sets `ATLAS_ALLOW_DUMMY_SUBMISSION=true`.
 
 ### Score-Driven Refinement Loop
 
-Error recovery alone cannot raise a working pipeline's score; it only rescues pipelines that crash. To actively search for stronger solutions, Spatial Atlas layers a second loop on top of self-healing. After the first successful run, the handler parses a machine-readable line of the form `VALIDATION_SCORE: <float>` from the pipeline's stdout. It then asks the Strong tier model to propose one targeted improvement (stronger model family, K-fold cross validation, target encoding, feature engineering, stacking, etc.), re-runs the refined script, parses the new score, and keeps whichever submission scored higher under the competition's metric direction (maximize vs. minimize).
+Error recovery alone cannot raise a working pipeline's score; it only rescues pipelines that crash. After the first explicitly authorized run succeeds, the handler can parse a machine-readable line of the form `VALIDATION_SCORE: <float>`, request one targeted revision, re-run it under the same authorization and controls, and retain it only when the parsed score is better under the metric direction.
 
-The loop runs up to `max_refinement_iterations = 2` extra passes, bounded by a hard wall-clock ceiling (`refinement_wall_time_seconds = 900`) to stay within MLE-Bench's per-task budget. Crucially, refined pipelines that regress or fail to print a score are discarded rather than propagated, so a bad refinement never hurts the submitted result.
+The loop runs up to `max_refinement_iterations = 2` extra passes, bounded by a hard wall-clock ceiling (`refinement_wall_time_seconds = 900`) to stay within MLE-Bench's per-task budget. The selection logic is configured to discard revisions that regress or fail to print a score.
 
-This loop uses the Strong (Claude Opus 4.6) tier by design: the Standard model already wrote the initial pipeline, so a different model family is more likely to surface a structurally different improvement than a second call to the same model. Empirically, cross-model disagreement between the two providers is a stronger signal for "worth re-trying" than any single-model confidence score.
+This loop uses the configured Strong tier. Strong defaults to GPT-4.1 and can be overridden by the operator. Whether a cross-provider override outperforms a same-model retry is a planned ablation, not an established result.
 
 ### Leak Audit and Targeted Leak Registry
 
@@ -307,7 +307,7 @@ The entropy-guided framework (Section 5) also informs strategy selection for ML 
 
 **A2A Protocol Compliance.** Spatial Atlas implements the A2A protocol specification using the official `a2a-sdk` (version >= 0.3.20). The server exposes a standard A2A endpoint that accepts JSON-RPC task submissions, streams intermediate status updates via Server-Sent Events (SSE), and returns structured results in the protocol-defined format. The agent card advertises capabilities for both FieldWorkArena and MLE-Bench task types.
 
-**Deployment.** The system is packaged as a Docker container targeting `linux/amd64`. The container includes all Python dependencies, pre-downloaded Florence-2 model weights, and the A2A server entry point. Environment variables configure API keys, model endpoints, and resource limits. A health check endpoint enables container orchestration systems to monitor availability.
+**Deployment.** The system is packaged as a Docker container targeting `linux/amd64`. Environment variables configure API keys, model endpoints, and resource limits. Public HTTP request bodies default to a 64 MiB limit. Active requests default to a maximum of 4; excess requests receive HTTP 503 rather than entering an unbounded queue. `ATLAS_BEARER_TOKEN`, when configured, must contain at least 32 characters and authenticates non-read-only requests. Normal non-loopback startup requires the token even when MLE execution is disabled; loopback development may omit it. `ATLAS_ALLOW_UNAUTHENTICATED_PUBLIC=true` is a test-only override for non-loopback binding and is not a normal deployment mode. MLE execution always requires authenticated startup.
 
 **File Processing Pipeline.** Task inputs arrive in diverse formats requiring specialized processing:
 
@@ -317,66 +317,25 @@ The entropy-guided framework (Section 5) also informs strategy selection for ML 
 - **Archives**: tar.gz files (MLE-Bench data) are extracted to a temporary workspace directory.
 - **Text**: Direct UTF-8 processing with encoding detection fallback.
 
-**Model Configuration.** All LLM calls use the model configurations specified in the model tiers table above. The fast tier (`gpt-4.1-mini`) handles initial classification, simple extraction, and confidence estimation. The standard tier (`gpt-4.1`) performs spatial reasoning over scene graph facts and ML strategy generation. The strong tier (`anthropic/claude-opus-4-6`) handles complex multi-step reasoning, reflection, and the iterative refinement loop for MLE-Bench pipelines. Using a genuinely different frontier model for Strong (rather than a higher-effort prompt of the Standard model) is what distinguishes our routing from a two-tier placebo: in the reflection path and the MLE-Bench refinement path, Strong sees a problem the Standard model has already attempted, so its only job is to find an improvement the Standard model missed. Empirically, cross-model disagreement between the two providers is a stronger signal for "worth re-trying" than any single-model confidence score.
+**Model Configuration.** All LLM calls use the model configurations specified in the model tiers table above. The fast tier (`openai/gpt-4.1-mini`) handles initial classification, simple extraction, and confidence estimation. The standard and strong tiers default to `openai/gpt-4.1`; Strong can be overridden with `ATLAS_STRONG_MODEL`. Any cross-provider variant must be compared with the default under identical budgets.
 
-**Resource Budgets.** Each task operates under a 150K token budget, enforced by the cost tracking module. Reflection is limited to a maximum of 2 rounds per task. ML pipeline execution timeouts are set to 300 seconds per attempt, with a total of 4 attempts (1 initial + 3 self-healing iterations). After a successful run, the score-driven refinement loop may execute up to 2 additional passes (Section 6), bounded by a 900-second wall-clock ceiling.
+**Resource Controls.** Public A2A model calls use the heuristic concurrency-safe per-execution reservation described above. Frozen benchmark drivers remain observational and use artifact-based batch accounting. Reflection is limited to a maximum of 2 rounds per task. Generated-code execution is disabled by default and requires both execution flags plus authenticated server startup. After authorization, each pipeline attempt has a 600-second timeout and the initial plus repair loop permits at most 3 total attempts. Dummy submissions remain disabled unless separately enabled. After a successful real run, the score-driven refinement loop may execute up to 2 additional passes (Section 6), bounded by a 900-second wall-clock ceiling.
 
 ---
 
 ## 8. Evaluation
 
-### FieldWorkArena Evaluation
+### Current Evidence Boundary
 
-FieldWorkArena tasks are scored using the six scoring functions defined above. Each task produces a binary score (0 or 1), and the overall benchmark score is the average across all tasks. We evaluate our system on the FieldWorkArena validation set covering factory, warehouse, and retail environments.
+No claim-bearing benchmark table is reported in this version. FieldWorkArena remained gated and inaccessible, so the project did not run its validation set and reports no FieldWorkArena accuracy, ablation, latency, token, or cost result. The local adapter and tests establish software behavior only; they are not benchmark evidence.
 
-**Ablation Study:**
+The repository also does not contain a sealed, end-to-end MLE-Bench result artifact covering the full competition suite. Accordingly, previously drafted valid-submission, medal, refinement, leak-effectiveness, and cost figures have been removed. A completed job or a working code path is not treated as a scientific result without the corresponding immutable predictions, scorer output, run manifest, and logs.
 
-| Configuration               | Factory | Warehouse | Retail |
-|-----------------------------|---------|-----------|--------|
-| Full System (SSG + EG + F2) | 0.72    | 0.68      | 0.74   |
-| Without SSG (pure VLM)      | 0.51    | 0.44      | 0.55   |
-| Without EG (no reflection)  | 0.65    | 0.60      | 0.67   |
-| Without F2 (no object det.) | 0.63    | 0.58      | 0.66   |
-| VLM Baseline (GPT-4V)       | 0.48    | 0.41      | 0.52   |
+### Planned Evaluation Protocol
 
-SSG = Spatial Scene Graph, EG = Entropy-Guided reasoning, F2 = Florence-2 preprocessing.
+The spatial evaluation will compare a question-only baseline, the scene-graph path, the metric-perception path, and a native reference implementation on a frozen public slice. It will report per-question-type accuracy, paired uncertainty intervals, parser and geometry failure rates, model and data revisions, token usage, wall-clock latency, and artifact paths. Labels remain sealed until all prediction journals are complete.
 
-The spatial scene graph engine provides the largest improvement, increasing accuracy by 21--24 percentage points over pure VLM reasoning. This confirms our central thesis that deterministic spatial computation outperforms generative spatial reasoning. Florence-2 preprocessing contributes an additional 7--10 percentage points through more accurate object counting, while entropy-guided reasoning adds 7--8 points through targeted reflection on uncertain answers.
-
-### MLE-Bench Evaluation
-
-MLE-Bench tasks are graded using `mlebench.grade.grade_csv()`, which applies the competition-specific evaluation metric to the submitted predictions.
-
-| Category     | Valid Submission | Medal Rate | n  |
-|-------------|-----------------|------------|----|
-| Tabular     | 0.91            | 0.42       | 32 |
-| NLP         | 0.78            | 0.28       | 18 |
-| Vision      | 0.65            | 0.15       | 12 |
-| Time Series | 0.85            | 0.35       |  8 |
-| Other       | 0.72            | 0.20       |  5 |
-| **Overall** | **0.82**        | **0.32**   | **75** |
-
-The self-healing pipeline achieves a valid submission rate of 82% across all 75 competitions, with the highest reliability on tabular tasks (91%) where our strategy templates are most mature. The dummy submission fallback ensures that even failed pipelines produce scoreable outputs, preventing zero-score penalties.
-
-### Score-Driven Refinement Impact
-
-Among tasks where the initial pipeline succeeded and printed a `VALIDATION_SCORE`, the refinement loop improved the validation metric in approximately 35--40% of iterations. The remaining iterations either regressed (discarded automatically) or produced negligible change. On tabular competitions, where the strongest templates already produce competitive baselines, refinement most often succeeds by switching from a single holdout to K-fold cross validation or by adding target encoding for high-cardinality categoricals. On NLP and vision tasks, refinement is less reliable because the initial pipeline is more likely to be architecturally constrained by the available libraries.
-
-The use of Claude Opus 4.6 (Anthropic) for the refinement codegen, rather than a second call to the same GPT-4.1 model that wrote the initial pipeline, is a deliberate design choice. A model from a different provider is more likely to propose a structurally different improvement than the model that already committed to the original approach.
-
-### Leak Audit Effectiveness
-
-The universal leak audit preamble fires on every competition. On competitions with documented train/test overlap (e.g., Random Acts of Pizza, where `request_id` links test rows to training labels), the audit detects the leak and the generated code exploits it directly, achieving near-perfect scores without model training. The registered leak hint for Random Acts of Pizza instructs the model to build a lookup dictionary from `request_id` to `requester_received_pizza` and submit the train labels directly for matching test rows. On competitions without known leaks, the audit's four checks (ID overlap, row fingerprinting, temporal ordering, byte hashing) complete in under 20 lines of code and add negligible runtime, while occasionally surfacing previously undocumented partial overlaps.
-
-### Cost Analysis
-
-| Domain                      | Avg. Tokens | Avg. Cost | Avg. Latency |
-|-----------------------------|-------------|-----------|-------------|
-| FieldWorkArena              | 45,200      | $0.18     | 12s         |
-| MLE-Bench (no refinement)   | 92,400      | $0.52     | 180s        |
-| MLE-Bench (with refinement) | 128,600     | $1.85     | 340s        |
-
-The entropy-guided model routing keeps FieldWorkArena costs low by resolving most tasks at the fast tier. MLE-Bench costs increase substantially when refinement is enabled because each refinement iteration invokes the Strong tier (Claude Opus 4.6) for codegen and re-runs the full pipeline. The higher per-task cost is justified by the 35--40% improvement rate on refinement-eligible tasks; operators can disable refinement entirely by setting `max_refinement_iterations = 0` to revert to the baseline cost profile.
+The ML-engineering evaluation will run fixed competition subsets with identical budgets and report valid-submission rate, competition-specific score, refinement acceptance rate, execution failures, tokens, latency, and cost. Each aggregate must be generated from machine-readable run artifacts rather than copied into the paper manually.
 
 ---
 
@@ -384,17 +343,7 @@ The entropy-guided model routing keeps FieldWorkArena costs low by resolving mos
 
 ### Limitations
 
-Several limitations merit discussion. First, the multi-model pipeline introduces latency: the sequential processing of Florence-2 detection, VLM description, scene graph construction, and LLM reasoning means that each FieldWorkArena task requires approximately 12 seconds, which may be prohibitive for real-time applications. Second, the quality of spatial reasoning depends critically on the vision model's ability to generate accurate scene descriptions; when the initial description misidentifies objects or their positions, the scene graph inherits these errors. Third, our ML pipeline's strategy templates are hand-designed for common competition types, and novel or highly specialized competitions may fall outside their coverage. Fourth, the refinement loop's effectiveness is bounded by the diversity of improvements the Strong model can propose; after 1--2 iterations, successive refinements tend to plateau or oscillate. Fifth, the leak audit is limited to four standard shapes of data leakage (ID overlap, row fingerprinting, temporal ordering, byte hashing) and will not detect more exotic leaks such as metadata embedded in non-standard file formats.
-
-### Ablation Insights
-
-The ablation study reveals several important findings. The spatial scene graph engine provides the largest individual contribution, confirming that the core bottleneck in VLM-based spatial reasoning is not the language model's reasoning ability but rather the unreliability of its spatial perceptions. This suggests that structured representations should be a standard component of multimodal agent architectures, not merely an optional enhancement.
-
-The entropy-guided reasoning framework provides moderate but consistent improvements. Interestingly, its primary benefit is not improving top-line accuracy but reducing the variance of answers: tasks that occasionally receive correct answers without reflection receive consistently correct answers with it. This suggests that the framework acts as a reliability mechanism rather than a capability amplifier.
-
-The cross-provider Strong tier (Claude Opus 4.6 on Anthropic vs. GPT-4.1 on OpenAI for Standard) produces a qualitatively different benefit than simply calling the same model at higher temperature. When the Standard model commits to an approach (e.g., a specific feature engineering pipeline), a second call to the same model tends to propose minor parameter tweaks within the same structural frame. The Strong model, trained on different data with different architectural biases, is more likely to propose a structurally different approach (e.g., switching from gradient boosting to stacking, or adding target encoding where the original used one-hot). This cross-model disagreement effect is most pronounced on tabular competitions and least useful on vision tasks where the available libraries constrain the solution space regardless of model choice.
-
-The score-driven refinement loop demonstrates diminishing returns: the first refinement iteration improves scores in roughly 35--40% of eligible tasks, while the second iteration improves in fewer than 15%. This rapid plateau suggests that two iterations is the right default; additional iterations would incur Strong-tier costs with minimal expected gain.
+Several limitations merit discussion. First, the quality of spatial computation depends on perception, object correspondence, depth, scale, and coordinate conventions; deterministic arithmetic cannot correct an incorrect geometric input. Second, the FieldWorkArena adapter is unvalidated against the inaccessible benchmark and must not be presented as evaluated compatibility. Third, the ML pipeline's strategy templates are hand-designed for common competition types, and novel tasks may fall outside their coverage. Fourth, cross-provider refinement and entropy-guided routing are design hypotheses whose accuracy and cost effects remain unmeasured. Fifth, the leak audit covers only four common leakage shapes and may miss leakage in non-standard metadata or file formats. Finally, generated code requires isolation, resource limits, and explicit trust boundaries before production use.
 
 ### Future Work
 
@@ -411,19 +360,19 @@ The spatial scene graph approach has direct applications to industrial safety, w
 
 ## 10. Conclusion
 
-We have presented Spatial Atlas, a spatial-aware research agent built on the compute-grounded reasoning (CGR) paradigm, addressing two challenging benchmarks (FieldWorkArena and MLE-Bench) through a single A2A protocol server. Our key contributions are:
+We have presented Spatial Atlas, a spatial-aware research agent built on the compute-grounded reasoning (CGR) paradigm and exposed through an A2A protocol server. Our implemented contributions are:
 
-1. A **spatial scene graph engine** that eliminates VLM hallucinations in spatial reasoning by extracting structured representations and computing spatial relationships deterministically, yielding a 21--24 percentage point improvement over pure VLM baselines.
+1. A **spatial scene graph engine** that makes extracted entities, coordinate assumptions, and computed relationships inspectable without claiming that deterministic computation eliminates perception errors.
 
-2. An **entropy-guided reasoning framework** that maximizes information gain per reasoning step, enabling cost-efficient model routing and targeted reflection, contributing 7--8 percentage points in accuracy improvement.
+2. An **entropy-guided reasoning framework** for model routing and targeted reflection, with effects to be measured under the planned ablations.
 
-3. A **self-healing ML pipeline** with strategy-aware code generation and automatic error recovery, achieving an 82% valid submission rate across 75 Kaggle competitions.
+3. A **fail-closed ML pipeline** with strategy-aware code generation, explicit execution authorization, bounded repair attempts, and a separately gated dummy fallback.
 
-4. A **score-driven refinement loop** that iteratively improves working pipelines by parsing validation scores and using a cross-provider Strong model to propose targeted improvements, with automatic rollback on regression.
+4. A **score-driven refinement loop** that parses validation scores, requests a revision from the configured strong tier, and retains it only when its parsed score improves.
 
-5. A **leak audit registry** that detects train/test data leakage at codegen time through four standard checks and injects prompt-based exploit hints so the Strong model can adapt exploits to the actual data layout at runtime.
+5. A **leak audit registry** that prompts generated pipelines to check four common leakage patterns and can inject task-specific hints.
 
-Compute-grounded reasoning, the principle of computing what can be computed before generating what must be generated, offers a general design pattern for building reliable, interpretable AI agents. We believe CGR defines a useful class of spatial-aware research agents and hope this framing encourages further work on grounding agent reasoning in deterministic computation.
+Compute-grounded reasoning, the principle of computing what can be computed before generating what must be generated, offers a design pattern for making agent decisions more inspectable. The planned evaluations will determine when this additional structure improves accuracy, reliability, latency, or cost.
 
 Spatial Atlas is open-sourced at https://github.com/arunshar/spatial-atlas to facilitate reproducibility and further research in compute-grounded agent architectures.
 
@@ -437,7 +386,7 @@ Spatial Atlas is open-sourced at https://github.com/arunshar/spatial-atlas to fa
 4. Chen, B., Xu, Z., Kirmani, S., et al. SpatialVLM: Endowing vision-language models with spatial reasoning capabilities. CVPR, 2024.
 5. Erickson, N., Mueller, J., Shirkov, A., et al. AutoGluon-Tabular: Robust and accurate AutoML for structured data. arXiv:2003.06505, 2020.
 6. Feurer, M., Klein, A., Eggensperger, K., et al. Auto-sklearn 2.0: Hands-free AutoML via meta-learning. JMLR, 22(235):1--61, 2019.
-7. FieldWorkArena Team. FieldWorkArena: A multimodal spatial reasoning benchmark for industrial environments. Technical report, 2025.
+7. J. Takahashi, A. Moteki, A. Uchida, S. Masui, F. Yang, K. Uchino, Y. Song, Y. Bisk, G. Neubig, I. Kusajima, Y. Watanabe, H. Ishida, K. Nakagawa, and S. Jiang. FieldWorkArena: Agentic AI benchmark for real field work tasks. arXiv preprint arXiv:2505.19662, 2025.
 8. Google. Agent-to-Agent (A2A) protocol specification. Online documentation, 2024.
 9. Hildebrandt, M., Li, H., Koner, R., et al. Scene graph reasoning for visual question answering. arXiv:2007.01072, 2020.
 10. Hollmann, N., Mueller, S., & Hutter, F. Large language models for automated machine learning. arXiv:2402.00878, 2024.

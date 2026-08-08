@@ -1,5 +1,5 @@
 """
-Spatial Atlas — MLE-Bench Domain Handler
+Spatial Atlas: MLE-Bench domain handler
 
 Orchestrates the complete ML competition pipeline:
 1. Extract competition data from tar.gz
@@ -14,16 +14,18 @@ Returns: (csv_bytes, summary_text)
 """
 
 import base64
+import binascii
 import io
 import logging
+import os
 import re
+import shutil
 import tarfile
 import tempfile
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pandas as pd
-
 from a2a.server.tasks import TaskUpdater
 from a2a.types import TaskState
 from a2a.utils import new_agent_text_message
@@ -36,13 +38,24 @@ from mlebench.executor import CodeExecutor
 
 logger = logging.getLogger("spatial-atlas.mlebench")
 
+MAX_ARCHIVE_BYTES = 512 * 1024 * 1024
+MAX_ARCHIVE_MEMBERS = 50_000
+MAX_ARCHIVE_MEMBER_BYTES = 4 * 1024 * 1024 * 1024
+MAX_ARCHIVE_EXPANDED_BYTES = 8 * 1024 * 1024 * 1024
+
+
+class PipelineExecutionError(RuntimeError):
+    """Raised when an MLE pipeline cannot produce a real submission."""
+
+
+def _enabled(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
 
 # Matches lines like 'VALIDATION_SCORE: 0.8341' anywhere in stdout.
 # Tolerates trailing text on the same line so the model can print a
 # parenthetical comment after the number.
-_VALIDATION_SCORE_RE = re.compile(
-    r"VALIDATION_SCORE:\s*(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)"
-)
+_VALIDATION_SCORE_RE = re.compile(r"VALIDATION_SCORE:\s*(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)")
 
 
 def _parse_validation_score(stdout: str) -> float | None:
@@ -64,9 +77,7 @@ def _parse_validation_score(stdout: str) -> float | None:
         return None
 
 
-def _score_is_better(
-    new: float, old: float, metric_direction: str
-) -> bool:
+def _score_is_better(new: float, old: float, metric_direction: str) -> bool:
     """
     Compare scores given the direction of the competition metric.
 
@@ -89,8 +100,33 @@ class MLEBenchHandler:
         self.analyzer = CompetitionAnalyzer(llm)
         self.codegen = MLCodeGenerator(llm)
         self.executor = CodeExecutor(timeout=config.code_execution_timeout)
+        self._active_work_dirs: set[Path] = set()
 
     async def handle(
+        self,
+        text: str,
+        file_parts: list[tuple[str, str, str | bytes]],
+        updater: TaskUpdater,
+    ) -> tuple[bytes, str]:
+        """Run MLE code only when an operator explicitly enables the trusted path."""
+        if not _enabled("ATLAS_ENABLE_MLEBENCH_CODE_EXECUTION") or not _enabled(
+            "ATLAS_TRUSTED_ISOLATED_WORKER"
+        ):
+            raise PermissionError(
+                "MLE-Bench code execution is disabled. An isolated worker must set both "
+                "ATLAS_ENABLE_MLEBENCH_CODE_EXECUTION=true and "
+                "ATLAS_TRUSTED_ISOLATED_WORKER=true."
+            )
+        existing = set(self._active_work_dirs)
+        try:
+            return await self._handle(text, file_parts, updater)
+        finally:
+            created = self._active_work_dirs - existing
+            for work_dir in created:
+                shutil.rmtree(work_dir, ignore_errors=True)
+                self._active_work_dirs.discard(work_dir)
+
+    async def _handle(
         self,
         text: str,
         file_parts: list[tuple[str, str, str | bytes]],
@@ -101,7 +137,7 @@ class MLEBenchHandler:
 
         Args:
             text: Instructions text from green agent
-            file_parts: List of (name, mime_type, data) — should include competition.tar.gz
+            file_parts: List of (name, mime_type, data), should include competition.tar.gz
             updater: A2A task updater for progress reporting
 
         Returns:
@@ -144,9 +180,7 @@ class MLEBenchHandler:
         # 4. Generate ML pipeline code
         await updater.update_status(
             TaskState.working,
-            new_agent_text_message(
-                f"Generating {analysis.strategy} ML pipeline..."
-            ),
+            new_agent_text_message(f"Generating {analysis.strategy} ML pipeline..."),
         )
 
         submission_path = str(work_dir / "submission.csv")
@@ -181,9 +215,7 @@ class MLEBenchHandler:
 
             # Self-heal: fix the code based on the error
             if attempt < self.config.max_code_iterations - 1:
-                logger.info(
-                    f"Pipeline failed on attempt {attempt + 1}, self-healing..."
-                )
+                logger.info(f"Pipeline failed on attempt {attempt + 1}, self-healing...")
                 await updater.update_status(
                     TaskState.working,
                     new_agent_text_message(
@@ -200,10 +232,13 @@ class MLEBenchHandler:
                 )
 
         if csv_bytes is None:
-            # Last resort: generate a dummy submission
-            logger.error("All attempts failed, generating dummy submission")
+            if not _enabled("ATLAS_ALLOW_DUMMY_SUBMISSION"):
+                raise PipelineExecutionError(
+                    "All generated pipeline attempts failed; no real submission was produced"
+                )
+            logger.warning("All attempts failed; emitting an explicitly enabled dummy submission")
             csv_bytes = self._generate_dummy_submission(data_dir, analysis)
-            refinement_note = "no refinement (pipeline never succeeded)"
+            refinement_note = "dummy fallback explicitly enabled after pipeline failure"
         else:
             # 6. Score-driven refinement loop.
             #
@@ -310,8 +345,7 @@ class MLEBenchHandler:
             )
             if csv_bytes is None:
                 logger.info(
-                    f"Refined pipeline on iter {i + 1} failed to run; "
-                    "keeping previous best"
+                    f"Refined pipeline on iter {i + 1} failed to run; keeping previous best"
                 )
                 continue
 
@@ -325,8 +359,7 @@ class MLEBenchHandler:
 
             if _score_is_better(new_score, best_score, analysis.metric_direction):
                 logger.info(
-                    f"Refinement iter {i + 1}: improved "
-                    f"{best_score:.4f} -> {new_score:.4f}"
+                    f"Refinement iter {i + 1}: improved {best_score:.4f} -> {new_score:.4f}"
                 )
                 best_code = refined_code
                 best_csv = csv_bytes
@@ -344,9 +377,7 @@ class MLEBenchHandler:
         )
         return best_csv, note
 
-    def _extract_competition(
-        self, file_parts: list[tuple[str, str, str | bytes]]
-    ) -> Path:
+    def _extract_competition(self, file_parts: list[tuple[str, str, str | bytes]]) -> Path:
         """Extract competition.tar.gz to a temporary directory."""
         tar_data = None
         for name, mime, data in file_parts:
@@ -364,24 +395,66 @@ class MLEBenchHandler:
             else:
                 raise ValueError("No competition data file received")
 
-        # Decode if base64
+        # Decode if base64.
         if isinstance(tar_data, str):
             if tar_data.startswith("data:"):
                 tar_data = tar_data.split(",", 1)[1]
-            tar_data = base64.b64decode(tar_data)
+            max_base64_chars = ((MAX_ARCHIVE_BYTES + 2) // 3) * 4 + 4
+            if len(tar_data) > max_base64_chars:
+                raise ValueError("Encoded competition archive exceeds the upload limit")
+            try:
+                tar_data = base64.b64decode(tar_data, validate=True)
+            except (binascii.Error, ValueError) as exc:
+                raise ValueError("Competition archive is not valid base64") from exc
+        if not isinstance(tar_data, bytes):
+            raise TypeError("Competition archive must be bytes or base64 text")
+        if len(tar_data) > MAX_ARCHIVE_BYTES:
+            raise ValueError("Decoded competition archive exceeds the upload limit")
 
         # Extract to temp directory
         work_dir = Path(tempfile.mkdtemp(prefix="atlas_mle_"))
+        self._active_work_dirs.add(work_dir)
         try:
-            with tarfile.open(fileobj=io.BytesIO(tar_data), mode="r:gz") as tar:
-                tar.extractall(work_dir, filter="data")
-        except tarfile.ReadError:
-            # Try uncompressed tar
-            with tarfile.open(fileobj=io.BytesIO(tar_data), mode="r:") as tar:
-                tar.extractall(work_dir, filter="data")
+            try:
+                with tarfile.open(fileobj=io.BytesIO(tar_data), mode="r:gz") as tar:
+                    self._validate_and_extract(tar, work_dir)
+            except tarfile.ReadError:
+                # Try uncompressed tar.
+                with tarfile.open(fileobj=io.BytesIO(tar_data), mode="r:") as tar:
+                    self._validate_and_extract(tar, work_dir)
+        except BaseException:
+            shutil.rmtree(work_dir, ignore_errors=True)
+            self._active_work_dirs.discard(work_dir)
+            raise
 
         logger.info(f"Extracted competition to {work_dir}")
         return work_dir
+
+    def _validate_and_extract(self, archive: tarfile.TarFile, work_dir: Path) -> None:
+        """Reject unsafe or oversized members before writing archive contents."""
+        members = archive.getmembers()
+        if len(members) > MAX_ARCHIVE_MEMBERS:
+            raise ValueError("Competition archive contains too many members")
+
+        total_bytes = 0
+        destinations: set[str] = set()
+        for member in members:
+            path = PurePosixPath(member.name)
+            if path.is_absolute() or ".." in path.parts:
+                raise ValueError(f"Unsafe competition archive path: {member.name!r}")
+            normalized = str(path)
+            if normalized in destinations:
+                raise ValueError(f"Duplicate competition archive path: {member.name!r}")
+            destinations.add(normalized)
+            if not (member.isfile() or member.isdir()):
+                raise ValueError(f"Unsupported competition archive member: {member.name!r}")
+            if member.size > MAX_ARCHIVE_MEMBER_BYTES:
+                raise ValueError(f"Competition archive member is too large: {member.name!r}")
+            total_bytes += member.size
+            if total_bytes > MAX_ARCHIVE_EXPANDED_BYTES:
+                raise ValueError("Competition archive expands beyond the configured limit")
+
+        archive.extractall(work_dir, members=members, filter="data")
 
     def _find_data_dir(self, work_dir: Path) -> Path:
         """Find the data directory within extracted competition."""
@@ -448,9 +521,7 @@ class MLEBenchHandler:
 
         return "\n".join(previews) if previews else "[No CSV files to preview]"
 
-    def _generate_dummy_submission(
-        self, data_dir: Path, analysis
-    ) -> bytes:
+    def _generate_dummy_submission(self, data_dir: Path, analysis) -> bytes:
         """Generate a minimal valid submission as last resort."""
         # Try to read test.csv and create a dummy submission
         test_path = data_dir / "test.csv"

@@ -1,5 +1,5 @@
 """
-Spatial Atlas — FieldWorkArena Goal Parser
+Spatial Atlas: FieldWorkArena Goal Parser
 
 Parses the structured goal string sent by the FWA green agent into
 a structured task object: query, input files, and output format.
@@ -53,11 +53,7 @@ class GoalParser:
         # Parse input data section into file names
         input_data = sections.get("input data", "").strip()
         if input_data:
-            task.input_files = [
-                line.strip()
-                for line in input_data.splitlines()
-                if line.strip()
-            ]
+            task.input_files = [line.strip() for line in input_data.splitlines() if line.strip()]
 
         # Fallback: if no structured sections found, treat entire text as query
         if not task.query:

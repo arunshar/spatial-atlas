@@ -1,6 +1,6 @@
 """General-purpose fallback strategy for unknown competition types."""
 
-GENERAL_TEMPLATE = '''
+GENERAL_TEMPLATE = """
 # === General Purpose Strategy (Auto-detect + Ensemble) ===
 # Fallback when competition type is unclear. Auto-detects:
 # - Column types (numeric, categorical, text)
@@ -49,7 +49,7 @@ if test_path:
     test = pd.read_csv(test_path)
     print(f"Test: {test.shape}")
 else:
-    print("No test file found — will need to adapt")
+    print("No test file found; will need to adapt")
     test = pd.DataFrame()
 
 TARGET = "TARGET_COLUMN"
@@ -134,4 +134,4 @@ if ID_COL and ID_COL in test.columns:
 submission[TARGET] = predictions
 submission.to_csv("SUBMISSION_PATH", index=False)
 print(f"Submission saved: {submission.shape}")
-'''
+"""

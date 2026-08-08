@@ -1,5 +1,5 @@
 """
-Spatial Atlas — Spatial Intelligence Engine
+Spatial Atlas: Spatial Intelligence Engine
 
 THE CROWN JEWEL: Structured spatial scene graph for deterministic reasoning.
 
@@ -29,25 +29,28 @@ logger = logging.getLogger("spatial-atlas.fieldwork.spatial")
 @dataclass
 class SpatialEntity:
     """A physical object/person in the scene."""
+
     id: str
-    label: str                                  # "forklift", "worker", "shelf_unit"
-    position: tuple[float, float] | None = None # estimated (x, y) in meters
+    label: str  # "forklift", "worker", "shelf_unit"
+    position: tuple[float, float] | None = None  # estimated (x, y) in meters
     attributes: dict[str, Any] = field(default_factory=dict)
-    zone: str | None = None                     # "loading_dock", "aisle_3"
+    zone: str | None = None  # "loading_dock", "aisle_3"
 
 
 @dataclass
 class SpatialRelation:
     """A spatial relationship between entities."""
-    subject: str        # entity id
-    predicate: str      # "near", "blocking", "inside", "above", "left_of"
-    object: str         # entity id or zone name
+
+    subject: str  # entity id
+    predicate: str  # "near", "blocking", "inside", "above", "left_of"
+    object: str  # entity id or zone name
     distance: float | None = None  # estimated distance in meters
 
 
 @dataclass
 class SpatialScene:
     """Complete spatial scene graph with queryable operations."""
+
     entities: dict[str, SpatialEntity] = field(default_factory=dict)
     relations: list[SpatialRelation] = field(default_factory=list)
     zones: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -105,9 +108,7 @@ class SpatialScene:
                                 f"{entity.label} ({entity.id}) missing PPE in {entity.zone}"
                             )
                         if "hard hat" in rule_lower and not attrs.get("hard_hat", True):
-                            self.violations.append(
-                                f"{entity.label} ({entity.id}) missing hard hat"
-                            )
+                            self.violations.append(f"{entity.label} ({entity.id}) missing hard hat")
                         if "safety vest" in rule_lower and not attrs.get("safety_vest", True):
                             self.violations.append(
                                 f"{entity.label} ({entity.id}) missing safety vest"
@@ -122,8 +123,9 @@ class SpatialScene:
     def _check_distance_rule(self, rule: str) -> None:
         """Parse and check distance-based safety rules."""
         import re
+
         # Try to extract: "X must be Y meters from Z"
-        dist_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:m|meters?)', rule.lower())
+        dist_match = re.search(r"(\d+(?:\.\d+)?)\s*(?:m|meters?)", rule.lower())
         if not dist_match:
             return
 
@@ -137,7 +139,11 @@ class SpatialScene:
                 if subj and obj:
                     subj_is_person = subj.label.lower() in ("worker", "person", "employee")
                     obj_is_hazard = obj.label.lower() in (
-                        "forklift", "machinery", "crane", "conveyor", "vehicle"
+                        "forklift",
+                        "machinery",
+                        "crane",
+                        "conveyor",
+                        "vehicle",
                     )
                     if subj_is_person and obj_is_hazard:
                         self.violations.append(
@@ -152,15 +158,28 @@ class SpatialScene:
         if self.entities:
             facts.append("## Entities Detected")
             for entity in self.entities.values():
-                pos_str = f" at ({entity.position[0]:.1f}, {entity.position[1]:.1f})" if entity.position else ""
+                pos_str = (
+                    f" at ({entity.position[0]:.1f}, {entity.position[1]:.1f})"
+                    if entity.position
+                    else ""
+                )
                 zone_str = f" in {entity.zone}" if entity.zone else ""
-                attrs_str = f" [{', '.join(f'{k}={v}' for k, v in entity.attributes.items())}]" if entity.attributes else ""
+                attrs_str = (
+                    f" [{', '.join(f'{k}={v}' for k, v in entity.attributes.items())}]"
+                    if entity.attributes
+                    else ""
+                )
                 facts.append(f"- {entity.label} ({entity.id}){pos_str}{zone_str}{attrs_str}")
 
         if self.relations:
             facts.append("\n## Spatial Relationships")
             for rel in self.relations:
-                dist_str = f" (distance: {rel.distance:.1f}m)" if rel.distance else ""
+                if rel.distance is None:
+                    dist_str = ""
+                elif rel.predicate == "horizontal_surface_gap":
+                    dist_str = f" (distance: {rel.distance:.6f}m)"
+                else:
+                    dist_str = f" (distance: {rel.distance:.1f}m)"
                 facts.append(f"- {rel.subject} {rel.predicate} {rel.object}{dist_str}")
 
         if self.zones:
@@ -197,7 +216,7 @@ Content:
 
 Extract all physical entities, their spatial relationships, zones/areas, and applicable safety rules.
 
-Return as JSON (be thorough — include every object, person, vehicle, and piece of equipment):
+Return as JSON (be thorough: include every object, person, vehicle, and piece of equipment):
 {{
   "entities": [
     {{
@@ -235,9 +254,7 @@ If distances cannot be estimated, omit distance_meters but still include the rel
     def __init__(self, llm: LLMClient):
         self.llm = llm
 
-    async def build_scene(
-        self, query: str, file_contexts: list[str]
-    ) -> SpatialScene:
+    async def build_scene(self, query: str, file_contexts: list[str]) -> SpatialScene:
         """Extract spatial information and build a scene graph."""
         context = "\n\n".join(file_contexts)
 
@@ -252,7 +269,12 @@ If distances cannot be estimated, omit distance_meters but still include the rel
                 max_tokens=4096,
             )
             data = json.loads(result)
-        except (json.JSONDecodeError, Exception) as e:
+        # Deliberately broad: an LLM call plus a json.loads, and any failure of either
+        # degrades to an empty scene rather than taking the request down. Written as a
+        # bare Exception because json.JSONDecodeError subclasses ValueError subclasses
+        # Exception, so naming it alongside Exception caught nothing extra and only
+        # implied a JSON-specific path that does not exist.
+        except Exception as e:
             logger.warning(f"Spatial extraction failed, returning empty scene: {e}")
             return SpatialScene()
 

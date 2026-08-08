@@ -19,18 +19,40 @@ git clone "$SPACE_REPO" "$WORK_DIR/space"
 echo "Copying project files..."
 # Copy project files, excluding local-only and build artifacts.
 # The Dockerfile rebuilds from pyproject.toml so .venv/ is never needed.
+#
+# NOTE ON sessions/: rsync does NOT read .gitignore. Until this exclude existed,
+# the only thing keeping sessions/ (the ledger, MSI job IDs, provenance chains,
+# all marked "never publish") out of a PUBLIC Space repo was the Space repo's own
+# .gitignore filtering it before `git add -A`. That protection was incidental, not
+# intentional, and would have vanished the moment the Space was recreated. Verified
+# 2026-07-25 that nothing had in fact leaked; excluded explicitly so it cannot.
+# Same reasoning for .venv-test, which '--exclude=.venv' does not match.
 rsync -av \
   --exclude='.git' \
   --exclude='.github' \
   --exclude='.venv' \
+  --exclude='.venv-test' \
   --exclude='.claude' \
   --exclude='.pytest_cache' \
+  --exclude='.hypothesis' \
+  --exclude='.ruff_cache' \
   --exclude='__pycache__' \
   --exclude='.DS_Store' \
+  --exclude='sessions' \
+  --exclude='junit.xml' \
   --exclude='tests' \
   --exclude='scenarios' \
   --exclude='paper' \
   "$(dirname "$0")/" "$WORK_DIR/space/"
+
+# Fail closed if anything sensitive survived the excludes. A silent leak to a
+# public repo is unrecoverable, so this refuses to push rather than warn.
+for forbidden in sessions .venv-test .hypothesis junit.xml; do
+  if [ -e "$WORK_DIR/space/$forbidden" ]; then
+    echo "REFUSING TO DEPLOY: '$forbidden' survived the rsync excludes." >&2
+    exit 1
+  fi
+done
 
 # Create the Space-specific README (overwrites the project README)
 cat > "$WORK_DIR/space/README.md" << 'SPACE_README'
