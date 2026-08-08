@@ -1,0 +1,19 @@
+.github/workflows/test-and-publish.yml
+  s_53a0bb9576255d::t_863aee943e7c04 19,23,44,59,65,75,121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "877dc8a2a943d38b53ce7f9b09ddc94f84dc1d1b",
+  "prompts": {},
+  "sessions": {
+    "s_53a0bb9576255d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ff6fe375-a5c9-427c-88ae-96cd73d4e53a",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Arun Sharma <sharm485@umn.edu>"
+    }
+  }
+}
