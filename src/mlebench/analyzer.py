@@ -94,7 +94,12 @@ class CompetitionAnalyzer:
                 max_tokens=2048,
             )
             data = json.loads(result)
-        except (json.JSONDecodeError, Exception) as e:
+        # Deliberately broad: an LLM call plus a json.loads, and any failure of either
+        # falls back to the default analysis rather than failing the competition. Written
+        # as a bare Exception because json.JSONDecodeError subclasses ValueError
+        # subclasses Exception, so naming it alongside Exception caught nothing extra and
+        # only implied a JSON-specific path that does not exist.
+        except Exception as e:
             logger.warning(f"Competition analysis failed, using defaults: {e}")
             return CompetitionAnalysis(
                 competition_id=competition_id,

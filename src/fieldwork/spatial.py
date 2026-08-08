@@ -269,7 +269,12 @@ If distances cannot be estimated, omit distance_meters but still include the rel
                 max_tokens=4096,
             )
             data = json.loads(result)
-        except (json.JSONDecodeError, Exception) as e:
+        # Deliberately broad: an LLM call plus a json.loads, and any failure of either
+        # degrades to an empty scene rather than taking the request down. Written as a
+        # bare Exception because json.JSONDecodeError subclasses ValueError subclasses
+        # Exception, so naming it alongside Exception caught nothing extra and only
+        # implied a JSON-specific path that does not exist.
+        except Exception as e:
             logger.warning(f"Spatial extraction failed, returning empty scene: {e}")
             return SpatialScene()
 

@@ -43,16 +43,31 @@ packages = ["src"]
 line-length = 100
 target-version = "py312"
 
-[tool.ruff.lint]
-# BLE001 flags `except Exception`. Every occurrence in src/ is a deliberate boundary
-# catch whose job is to degrade instead of crash: optional model loading in
-# fieldwork/detector.py and fieldwork/vision.py sets `_available = False` and carries on,
-# and the leak-detector registry in mlebench/strategies/leaks.py must survive a malformed
-# third-party detector. That handler already caused an outage once by raising inside its
-# own except clause, fixed in 2e593f1, which argues for keeping the catch broad rather
-# than narrowing it. Narrowing sixteen call sites would trade a lint clean for real
-# fragility, so the rule is disabled project-wide rather than suppressed sixteen times.
-ignore = ["BLE001"]
+[tool.ruff.lint.per-file-ignores]
+# BLE001 flags `except Exception`. The seventeen occurrences below were each read
+# individually and are deliberate boundary catches whose job is to degrade rather than
+# crash: optional model loading that sets `_available = False` and carries on, per-step
+# vision degradation, the refinement retry loop, and the leak-detector registry, which
+# must survive a malformed third-party detector. That registry already caused an outage
+# by raising inside its own except clause, fixed in 2e593f1, which argues for keeping
+# those catches broad rather than narrowing them.
+#
+# Scoped per file rather than ignored project-wide on purpose. A blanket ignore would
+# also exempt every module added later, and BLE001 turned out to be the only rule
+# surfacing a real defect here: `except (json.JSONDecodeError, Exception)` in spatial.py
+# and analyzer.py, which is exactly `except Exception` because JSONDecodeError subclasses
+# ValueError subclasses Exception. B014 does not catch subclass redundancy. Both are now
+# fixed. Keeping the rule live everywhere else preserves that signal for new code.
+"src/entropy/engine.py" = ["BLE001"]
+"src/executor.py" = ["BLE001"]
+"src/fieldwork/detector.py" = ["BLE001"]
+"src/fieldwork/perception.py" = ["BLE001"]
+"src/fieldwork/spatial.py" = ["BLE001"]
+"src/fieldwork/vision.py" = ["BLE001"]
+"src/mlebench/analyzer.py" = ["BLE001"]
+"src/mlebench/executor.py" = ["BLE001"]
+"src/mlebench/handler.py" = ["BLE001"]
+"src/mlebench/strategies/leaks.py" = ["BLE001"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
