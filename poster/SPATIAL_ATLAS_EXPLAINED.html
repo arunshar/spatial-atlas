@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Spatial Atlas Explained</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <style>
+  :root{color-scheme:light dark;--page:#f7f8f5;--panel:#fff;--text:#111713;--muted:#526057;--line:#cbd7ce;--accent:#14532d;--accent-soft:#e7f2e9;--code:#eff4f0}
+  @media(prefers-color-scheme:dark){:root{--page:#0c110e;--panel:#121a15;--text:#edf5ef;--muted:#aebbb2;--line:#34473a;--accent:#72d095;--accent-soft:#183323;--code:#17221b}}
+  html{scroll-behavior:smooth}
+  body{box-sizing:border-box;display:grid;grid-template-columns:minmax(15rem,19rem) minmax(0,52rem);gap:2.5rem;max-width:78rem;margin:0 auto;padding:1.5rem 2rem 5rem;color:var(--text);background:var(--page);font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:17px;line-height:1.65}
+  body>:not(nav):not(#toc-toggle){grid-column:2}
+  #TOC{grid-column:1;grid-row:1/span 999;position:sticky;top:1.5rem;align-self:start;max-height:calc(100vh - 3rem);overflow:auto;padding:1rem 1.1rem;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-size:.84rem;line-height:1.35}
+  #TOC::before{display:block;margin-bottom:.8rem;color:var(--accent);font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;content:"Spatial Atlas guide"}
+  #TOC ul{margin:0;padding-left:1rem}#TOC>ul{padding-left:0}#TOC li{margin:.25rem 0}
+  #TOC a{color:var(--muted);text-decoration:none}#TOC a:hover,#TOC a:focus,#TOC a[aria-current="location"]{color:var(--accent);text-decoration:underline;text-underline-offset:.2em}
+  #toc-toggle{display:none}
+  h1,h2,h3{color:var(--text);line-height:1.18;text-wrap:balance}
+  h1{margin-top:.2rem;font-size:clamp(2.2rem,5vw,4rem);letter-spacing:-.035em}
+  h2{margin-top:2.8rem;padding-top:.9rem;border-top:1px solid var(--line);font-size:clamp(1.5rem,3vw,2.1rem)}
+  h3{margin-top:2rem;color:var(--accent);font-size:1.2rem}
+  p,li{max-width:74ch}a{color:var(--accent);text-underline-offset:.16em}
+  blockquote{margin:1.5rem 0;padding:.9rem 1.2rem;border-left:4px solid var(--accent);border-radius:0 10px 10px 0;color:var(--text);background:var(--accent-soft)}
+  code{padding:.1rem .28rem;border-radius:5px;background:var(--code);font-size:.88em}
+  pre{overflow-x:auto;padding:1rem;border:1px solid var(--line);border-radius:12px;background:var(--code)}pre code{padding:0;background:transparent}
+  .dag-scroll{overflow-x:auto;margin:1.2rem 0 1.8rem;padding:.75rem;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+  .dag-scroll svg{display:block;min-width:760px;width:100%;height:auto}
+  table{display:table;width:100%;margin:1.2rem 0 1.8rem;border-collapse:collapse;font-size:.92rem}
+  th,td{padding:.65rem .75rem;border:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--text);background:var(--accent-soft)}
+  .math{overflow-x:auto}
+  @media(max-width:820px){html,body{width:100%;max-width:100%;overflow-x:hidden}body{display:block;padding:1rem 1rem 4rem;font-size:16px}p,li{max-width:100%;overflow-wrap:anywhere}#TOC{position:static;display:block;max-height:16rem;margin-bottom:1.2rem}h1{margin-top:1.2rem}table{display:block;max-width:100%;overflow-x:auto;white-space:nowrap}}
+  @media print{body{display:block;max-width:none;padding:0;background:#fff;color:#000;font-size:11pt}#TOC,#toc-toggle{display:none}h2{break-after:avoid}pre,table,blockquote{break-inside:avoid}}
+  </style>
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#spatial-atlas-explained"
+id="toc-spatial-atlas-explained">Spatial Atlas Explained</a>
+<ul>
+<li><a href="#read-the-claim-label-first"
+id="toc-read-the-claim-label-first">1. Read the claim label
+first</a></li>
+<li><a href="#the-five-year-old-explanation"
+id="toc-the-five-year-old-explanation">2. The five-year-old
+explanation</a></li>
+<li><a href="#the-research-question" id="toc-the-research-question">3.
+The research question</a></li>
+<li><a href="#public-architecture" id="toc-public-architecture">4.
+Public architecture</a></li>
+<li><a href="#fieldworkarena-path" id="toc-fieldworkarena-path">5.
+FieldWorkArena path</a>
+<ul>
+<li><a href="#typed-state" id="toc-typed-state">5.1 Typed state</a></li>
+<li><a href="#the-five-node-computation-graph"
+id="toc-the-five-node-computation-graph">5.2 The five-node computation
+graph</a></li>
+<li><a href="#what-the-graph-establishes"
+id="toc-what-the-graph-establishes">5.3 What the graph
+establishes</a></li>
+<li><a href="#what-the-graph-does-not-establish"
+id="toc-what-the-graph-does-not-establish">5.4 What the graph does not
+establish</a></li>
+</ul></li>
+<li><a href="#entropy-guided-reasoning"
+id="toc-entropy-guided-reasoning">6. Entropy-guided reasoning</a>
+<ul>
+<li><a href="#paper-formulation" id="toc-paper-formulation">6.1 Paper
+formulation</a></li>
+<li><a href="#public-controller" id="toc-public-controller">6.2 Public
+controller</a></li>
+</ul></li>
+<li><a href="#mle-bench-path" id="toc-mle-bench-path">7. MLE-Bench
+path</a>
+<ul>
+<li><a href="#what-score-gated-rollback-guarantees"
+id="toc-what-score-gated-rollback-guarantees">7.1 What score-gated
+rollback guarantees</a></li>
+<li><a href="#public-safety-and-validity-limits"
+id="toc-public-safety-and-validity-limits">7.2 Public safety and
+validity limits</a></li>
+</ul></li>
+<li><a href="#source-reported-evaluation"
+id="toc-source-reported-evaluation">8. Source-reported evaluation</a>
+<ul>
+<li><a href="#fieldworkarena" id="toc-fieldworkarena">8.1
+FieldWorkArena</a></li>
+<li><a href="#mle-bench" id="toc-mle-bench">8.2 MLE-Bench</a></li>
+</ul></li>
+<li><a href="#why-spatialclaw-appears"
+id="toc-why-spatialclaw-appears">9. Why SpatialClaw appears</a>
+<ul>
+<li><a href="#upstream-mechanism" id="toc-upstream-mechanism">9.1
+Upstream mechanism</a></li>
+<li><a href="#upstream-results" id="toc-upstream-results">9.2 Upstream
+results</a></li>
+</ul></li>
+<li><a href="#local-poster-described-metric-bridge"
+id="toc-local-poster-described-metric-bridge">10. Local poster-described
+metric bridge</a></li>
+<li><a href="#proposed-integration" id="toc-proposed-integration">11.
+Proposed integration</a></li>
+<li><a href="#what-the-poster-contributes"
+id="toc-what-the-poster-contributes">12. What the poster
+contributes</a></li>
+<li><a href="#what-remains-unresolved"
+id="toc-what-remains-unresolved">13. What remains unresolved</a></li>
+<li><a href="#claim-boundary-checklist"
+id="toc-claim-boundary-checklist">14. Claim-boundary checklist</a>
+<ul>
+<li><a href="#safe-as-public-implementation"
+id="toc-safe-as-public-implementation">Safe as public
+implementation</a></li>
+<li><a href="#state-only-as-source-reported-spatial-atlas-results"
+id="toc-state-only-as-source-reported-spatial-atlas-results">State only
+as source-reported Spatial Atlas results</a></li>
+<li><a href="#attribute-to-upstream-spatialclaw"
+id="toc-attribute-to-upstream-spatialclaw">Attribute to upstream
+SpatialClaw</a></li>
+<li><a href="#state-only-as-local-poster-described-integration"
+id="toc-state-only-as-local-poster-described-integration">State only as
+local poster-described integration</a></li>
+<li><a href="#state-only-as-proposed"
+id="toc-state-only-as-proposed">State only as proposed</a></li>
+<li><a href="#do-not-claim" id="toc-do-not-claim">Do not claim</a></li>
+</ul></li>
+<li><a href="#public-source-index" id="toc-public-source-index">15.
+Public source index</a></li>
+<li><a href="#one-sentence-take-away"
+id="toc-one-sentence-take-away">16. One-sentence take-away</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="spatial-atlas-explained">Spatial Atlas Explained</h1>
+<p>This guide explains the Spatial Atlas poster from first principles
+while preserving the boundary between implemented behavior, reported
+results, upstream work, local integration, and proposed work. It is
+written for readers who want more detail than the poster can hold
+without relying on private experiments or unpublished diagnostics.</p>
+<p>The companion <a
+href="POSTER_QA_PACKET.md"><code>POSTER_QA_PACKET.md</code></a> contains
+short answers for live discussion. The companion <a
+href="POSTER_NARRATIVE.md"><code>POSTER_NARRATIVE.md</code></a> contains
+timed speaking versions.</p>
+<h2 id="read-the-claim-label-first">1. Read the claim label first</h2>
+<p>Every technical statement in this guide belongs to one of five
+evidence classes.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Label</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Public implementation</strong></td>
+<td>Behavior visible in the public Spatial Atlas source</td>
+</tr>
+<tr>
+<td><strong>Source-reported Spatial Atlas result</strong></td>
+<td>A value printed in the Spatial Atlas v2 preprint without public run
+artifacts sufficient for reproduction</td>
+</tr>
+<tr>
+<td><strong>Upstream SpatialClaw result</strong></td>
+<td>A mechanism or result reported by Cho and colleagues, not by Spatial
+Atlas</td>
+</tr>
+<tr>
+<td><strong>Local poster-described integration</strong></td>
+<td>Work described on the poster that is not present in public main</td>
+</tr>
+<tr>
+<td><strong>Proposed</strong></td>
+<td>A design target or next experiment</td>
+</tr>
+</tbody>
+</table>
+<p>These labels are not interchangeable. A deterministic calculation is
+not proof that its input is correct. A completed task status is not
+proof that the resulting artifact is valid. A value in a preprint is not
+a reproduced result unless the matching inputs, protocol, and outputs
+are available.</p>
+<p>The implementation statements in the poster preparation materials
+were audited against public commit <a
+href="https://github.com/arunshar/spatial-atlas/commit/d29c8c30a3cbf463fa120c825b3c074a3a07e923"><code>d29c8c3</code></a>.
+The subsequent public commit <a
+href="https://github.com/arunshar/spatial-atlas/commit/b949dc96ed4bdaa793b1c5eba3c97ee3d7fe7c8e"><code>b949dc9</code></a>
+expanded the narrative and Q&amp;A without changing the audited
+implementation.</p>
+<h2 id="the-five-year-old-explanation">2. The five-year-old
+explanation</h2>
+<p>Imagine an AI looking at a warehouse photograph.</p>
+<p>It may say, “The pallet is two meters from the barrier,” because it
+has seen many similar warehouses. That answer can sound convincing even
+if the AI never measured or calculated anything.</p>
+<p>Spatial Atlas tries to separate three jobs:</p>
+<ol type="1">
+<li><strong>Write down what appears to be present.</strong> Make a
+notebook of objects, positions, relations, attributes, and
+constraints.</li>
+<li><strong>Use a calculator where a calculation is possible.</strong>
+Compute selected distances, nearby-object queries, and rule violations
+from the notebook.</li>
+<li><strong>Ask the language model to explain the result.</strong> Give
+the model the computed fact sheet instead of asking it to invent the
+same facts again.</li>
+</ol>
+<p>This ordering is called <strong>compute-grounded reasoning</strong>,
+or <strong>CGR</strong>.</p>
+<p>The important limitation is simple. A perfect calculator cannot
+repair a wrong notebook. In public Spatial Atlas, the scene coordinates
+are estimated by a language model. The arithmetic over those coordinates
+is repeatable, but the coordinates are not measured geometry.</p>
+<p>The third poster column asks how richer perception and a stateful
+code-action loop could improve that boundary. It uses SpatialClaw as
+upstream context, describes a local reconstructed-geometry bridge, and
+marks the remaining kernel, journal, and verifier connections as
+proposed.</p>
+<h2 id="the-research-question">3. The research question</h2>
+<p>The project begins with one question:</p>
+<blockquote>
+<p>When an agent can compute a fact, why ask a language model to guess
+it?</p>
+</blockquote>
+<p>Answer-only evaluation can tell us whether the final text matches a
+reference. It often cannot tell us whether the answer came from
+inspected evidence, deterministic computation, memorized patterns, or
+luck.</p>
+<p>CGR changes the unit of inspection. Instead of observing only the
+final answer, we can inspect:</p>
+<ul>
+<li>the entities and relations supplied to the computation</li>
+<li>the operation used to derive a fact</li>
+<li>the facts placed in the final prompt</li>
+<li>the state before and after a repair or refinement</li>
+<li>the conditions under which the system should refuse an answer</li>
+</ul>
+<p>The present public implementation only realizes part of this vision.
+It exposes structured state and deterministic operations, but it does
+not yet include a complete evidence-use journal or a verifier that
+proves which facts supported the final response.</p>
+<h2 id="public-architecture">4. Public architecture</h2>
+<p><strong>Evidence class: Public implementation</strong></p>
+<p>Spatial Atlas exposes one Agent-to-Agent entry point and routes tasks
+to two benchmark-oriented handlers:</p>
+<ul>
+<li><strong>FieldWorkArena handler:</strong> handles multimodal spatial
+questions through vision context, a typed scene graph, deterministic
+graph operations, and language-model reasoning.</li>
+<li><strong>MLE-Bench handler:</strong> analyzes a machine-learning
+task, generates runnable pipeline code, repairs failures, parses a
+pipeline-emitted validation score, and retains a refinement only when
+the parsed score improves under the selected direction.</li>
+</ul>
+<p>The two handlers share an entry point and model-access
+infrastructure. They do not prove that one algorithm generalizes across
+both benchmarks. Their common idea is the ordering of work: establish
+state, use code for selected operations, then generate.</p>
+<p>Relevant public files include:</p>
+<ul>
+<li><a href="../src/agent.py"><code>src/agent.py</code></a></li>
+<li><a
+href="../src/fieldwork/handler.py"><code>src/fieldwork/handler.py</code></a></li>
+<li><a
+href="../src/fieldwork/spatial.py"><code>src/fieldwork/spatial.py</code></a></li>
+<li><a
+href="../src/fieldwork/reasoner.py"><code>src/fieldwork/reasoner.py</code></a></li>
+<li><a
+href="../src/mlebench/handler.py"><code>src/mlebench/handler.py</code></a></li>
+<li><a
+href="../src/mlebench/codegen.py"><code>src/mlebench/codegen.py</code></a></li>
+<li><a
+href="../src/mlebench/executor.py"><code>src/mlebench/executor.py</code></a></li>
+<li><a
+href="../src/entropy/engine.py"><code>src/entropy/engine.py</code></a></li>
+<li><a
+href="../src/cost/tracker.py"><code>src/cost/tracker.py</code></a></li>
+</ul>
+<h2 id="fieldworkarena-path">5. FieldWorkArena path</h2>
+<p><strong>Evidence class: Public implementation</strong></p>
+<p>The public FieldWork path can be summarized as follows:</p>
+<ol type="1">
+<li>Parse the task question and image context.</li>
+<li>Obtain a vision description, with Florence-2 detections used as
+context when available.</li>
+<li>Ask a Strong-tier model for typed entities, relations, coordinates,
+zones, attributes, and constraints.</li>
+<li>Build the scene graph.</li>
+<li>Fill missing relation distances with deterministic two-dimensional
+Euclidean calculations.</li>
+<li>Expose queries, constraint checks, and a serialized fact sheet.</li>
+<li>Ask a Strong-tier model for an answer using the structured
+facts.</li>
+<li>Ask a fast-tier model for a confidence score.</li>
+<li>If the score is below 0.6, request one Strong-tier refinement.</li>
+<li>Return the answer.</li>
+</ol>
+<p>This path contains deterministic computation. It does not recover
+metric geometry from pixels in public main.</p>
+<h3 id="typed-state">5.1 Typed state</h3>
+<p>The poster writes a vertex and edge schematically as:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>i</mi></msub><mo>=</mo><mrow><mi>SpatialEntity</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">d</mi></mrow><mi>i</mi></msub><mo>,</mo><msub><mi>ℓ</mi><mi>i</mi></msub><mo>,</mo><msub><mrow><mi mathvariant="normal">p</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">s</mi></mrow><mi>i</mi></msub><mo>,</mo><msub><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">s</mi></mrow><mi>i</mi></msub><mo>,</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+v_i = \operatorname{SpatialEntity}
+(\mathrm{id}_i,\ell_i,\mathrm{pos}_i,\mathrm{attrs}_i,z_i)
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mrow><mi>SpatialRelation</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>i</mi><mo>,</mo><msub><mi>p</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>,</mo><mi>j</mi><mo>,</mo><msub><mi>d</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+e_{ij} = \operatorname{SpatialRelation}
+(i,p_{ij},j,d_{ij})
+</annotation></semantics></math></p>
+<p>A vertex stores one proposed entity. An edge stores a proposed
+relation between two entities. The graph makes these fields inspectable
+and gives deterministic code a stable input format.</p>
+<p>For positions
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>i</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>y</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_i=(x_i,y_i)</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>j</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>j</mi></msub><mo>,</mo><msub><mi>y</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_j=(x_j,y_j)</annotation></semantics></math>,
+public <code>compute_distance(i, j)</code> applies:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msqrt><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>−</mo><msub><mi>x</mi><mi>j</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo>+</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo>−</mo><msub><mi>y</mi><mi>j</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow></msqrt></mrow><annotation encoding="application/x-tex">
+d(i,j)=\sqrt{(x_i-x_j)^2+(y_i-y_j)^2}
+</annotation></semantics></math></p>
+<p>The operation is deterministic for fixed coordinates. Its geometric
+accuracy still depends on the coordinates supplied by extraction.</p>
+<h3 id="the-five-node-computation-graph">5.2 The five-node computation
+graph</h3>
+<div class="dag-scroll">
+<svg viewBox="0 0 960 300" role="img"
+  aria-label="Five-node scene-graph computation flow. compute_distance feeds compute_all_distances and query_near. compute_all_distances feeds check_constraints, which feeds to_fact_sheet.">
+  <defs>
+    <marker id="dag-arrow" markerWidth="10" markerHeight="10" refX="8"
+      refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" style="fill:var(--accent)"/>
+    </marker>
+  </defs>
+  <g fill="none" style="stroke:var(--accent);stroke-width:3"
+    marker-end="url(#dag-arrow)">
+    <path d="M220 130 H245 V70 H270"/>
+    <path d="M470 70 H520"/>
+    <path d="M700 70 H750"/>
+    <path d="M220 130 H395 V220 H520"/>
+  </g>
+  <g style="fill:var(--accent-soft);stroke:var(--accent);stroke-width:2">
+    <rect x="20" y="95" width="200" height="70" rx="12"/>
+    <rect x="270" y="35" width="200" height="70" rx="12"/>
+    <rect x="520" y="35" width="180" height="70" rx="12"/>
+    <rect x="750" y="35" width="190" height="70" rx="12"/>
+    <rect x="520" y="185" width="180" height="70" rx="12"/>
+  </g>
+  <g text-anchor="middle" dominant-baseline="middle"
+    style="fill:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:17px;font-weight:700">
+    <text x="120" y="130">compute_distance(i, j)</text>
+    <text x="370" y="70">compute_all_distances()</text>
+    <text x="610" y="70">check_constraints()</text>
+    <text x="845" y="70">to_fact_sheet()</text>
+    <text x="610" y="220">query_near(v, r)</text>
+  </g>
+</svg>
+</div>
+<p>The nodes have different roles:</p>
+<ul>
+<li><code>compute_distance(i, j)</code> calculates one pairwise value
+from stored positions.</li>
+<li><code>compute_all_distances()</code> fills missing distance fields
+for existing relations.</li>
+<li><code>query_near(v, r)</code> performs an independent radius query
+over stored entities.</li>
+<li><code>check_constraints()</code> evaluates the implemented graph
+constraints.</li>
+<li><code>to_fact_sheet()</code> serializes entities, stored distances,
+and violations for downstream reasoning.</li>
+</ul>
+<p>The graph does not recompute every distance unconditionally.
+<code>compute_all_distances()</code> preserves a distance that
+extraction already supplied. The current representation does not record
+whether a stored distance came from the extractor or from
+<code>compute_distance</code>.</p>
+<h3 id="what-the-graph-establishes">5.3 What the graph establishes</h3>
+<p>The graph establishes a visible boundary between:</p>
+<ul>
+<li>model-proposed scene evidence</li>
+<li>deterministic derivation over that evidence</li>
+<li>final language generation</li>
+</ul>
+<p>That boundary is useful for inspection and targeted testing. It does
+not prove that the scene evidence is physically correct.</p>
+<h3 id="what-the-graph-does-not-establish">5.4 What the graph does not
+establish</h3>
+<p>Public main does not establish any of the following:</p>
+<ul>
+<li>metric scale recovered from the image</li>
+<li>measured three-dimensional geometry</li>
+<li>uncertainty intervals for a reported distance</li>
+<li>provenance distinguishing supplied and derived relation
+distances</li>
+<li>a fail-closed policy for missing safety attributes</li>
+<li>proof that the final answer used a particular graph fact</li>
+</ul>
+<p>One especially important limit is missing evidence. Public
+<code>check_constraints()</code> treats absent PPE, hard-hat, and
+safety-vest attributes as compliant defaults. Missing evidence can
+therefore suppress a violation. A safety-oriented deployment should
+represent absence as unknown and refuse the claim when required evidence
+is unavailable.</p>
+<h2 id="entropy-guided-reasoning">6. Entropy-guided reasoning</h2>
+<p>This section contains two different evidence classes. The equations
+are the paper formulation. The one-refine controller is the public
+implementation.</p>
+<h3 id="paper-formulation">6.1 Paper formulation</h3>
+<p><strong>Evidence class: Source-reported Spatial Atlas
+theory</strong></p>
+<p>At step
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
+the paper represents accumulated observations, computed facts, and
+intermediate conclusions as a knowledge state
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝒦</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathcal K_t</annotation></semantics></math>.
+It defines answer entropy as:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒜</mi><mo>∣</mo><msub><mi>𝒦</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>−</mi><munder><mo>∑</mo><mrow><mi>a</mi><mo>∈</mo><mi>𝒜</mi></mrow></munder><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>∣</mo><msub><mi>𝒦</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mrow><mi>log</mi><mo>&#8289;</mo></mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>∣</mo><msub><mi>𝒦</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+H(\mathcal A\mid\mathcal K_t)
+=-\sum_{a\in\mathcal A}
+P(a\mid\mathcal K_t)\log P(a\mid\mathcal K_t)
+</annotation></semantics></math></p>
+<p>Given candidate actions
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>c</mi><mi>j</mi></msub><annotation encoding="application/x-tex">c_j</annotation></semantics></math>,
+it then proposes choosing the action with the greatest expected entropy
+reduction:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>c</mi><mo>⋆</mo></msup><mo>=</mo><mrow><mi>arg</mi><mo>&#8289;</mo></mrow><munder><mi>max</mi><msub><mi>c</mi><mi>j</mi></msub></munder><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒜</mi><mo>∣</mo><msub><mi>𝒦</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>𝒜</mi><mo>∣</mo><msub><mi>𝒦</mi><mi>t</mi></msub><mo>∪</mo><mi>obs</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>c</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">
+c^\star=\arg\max_{c_j}
+\mathbb E\left[
+H(\mathcal A\mid\mathcal K_t)
+-H(\mathcal A\mid\mathcal K_t\cup\operatorname{obs}(c_j))
+\right]
+</annotation></semantics></math></p>
+<p>The reflection rule is written as:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi>reflect</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">True</mtext><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mi>σ</mi><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo><mo>&lt;</mo><mi>τ</mi></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">False</mtext><mo>,</mo></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">otherwise</mtext></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+\operatorname{reflect}(a)=
+\begin{cases}
+\text{True}, &amp; \sigma(a)&lt;\tau\\
+\text{False}, &amp; \text{otherwise}
+\end{cases}
+</annotation></semantics></math></p>
+<p>with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>=</mo><mn>0.6</mn></mrow><annotation encoding="application/x-tex">\tau=0.6</annotation></semantics></math>.</p>
+<p>The full paper policy also describes Fast, Standard, and Strong
+routing with at most two reflection rounds. These equations state the
+intended decision objective. They are not the algorithm executed by the
+current FieldWork path.</p>
+<h3 id="public-controller">6.2 Public controller</h3>
+<p><strong>Evidence class: Public implementation</strong></p>
+<p>The deployed public sequence is narrower:</p>
+<pre class="text"><code>answer = Strong(question, evidence)
+score = FastSelfGrade(answer, evidence, question)
+
+if score &lt; 0.6:
+    answer = StrongRefine(answer, evidence, question)
+
+return answer</code></pre>
+<p>This means:</p>
+<ul>
+<li>one Strong-tier answer</li>
+<li>one fast-tier self-grade</li>
+<li>at most one Strong-tier refinement</li>
+<li>no expected-information-gain calculation</li>
+<li>no demonstrated calibration of the self-grade</li>
+</ul>
+<p>If the grading response cannot be parsed, the code returns 0.5. The
+repository contains no reliability curve or threshold sweep supporting
+0.6 as a calibrated operating point. The score should therefore be
+described as a routing heuristic, not a probability of correctness.</p>
+<h2 id="mle-bench-path">7. MLE-Bench path</h2>
+<p><strong>Evidence class: Public implementation</strong></p>
+<p>The MLE handler applies the compute-first idea to a different object:
+generated pipeline execution and a parsed validation score.</p>
+<p>A simplified flow is:</p>
+<ol type="1">
+<li>Analyze the competition description and infer task structure.</li>
+<li>Generate pipeline code with a strategy-specific prompt.</li>
+<li>Run the code as a subprocess with a timeout.</li>
+<li>Use captured error context to request a repair when execution
+fails.</li>
+<li>Parse <code>VALIDATION_SCORE</code> from a successful run.</li>
+<li>Request up to two score-driven refinements after a successful
+initial run.</li>
+<li>Keep a refinement only when its parsed score improves under the
+selected direction.</li>
+<li>Produce the selected submission.</li>
+</ol>
+<p>Public default configuration permits three initial execution attempts
+in total. The handler checks a 900-second refinement budget before
+starting an iteration. A started iteration can continue under its
+separate 600-second subprocess timeout, so 900 seconds is not a strict
+end-to-end deadline.</p>
+<h3 id="what-score-gated-rollback-guarantees">7.1 What score-gated
+rollback guarantees</h3>
+<p>The rollback rule guarantees monotonicity only for the parsed
+<code>VALIDATION_SCORE</code>, under an analyzer-supplied direction
+interpreted through a keyword heuristic.</p>
+<p>It does not prove improvement on a hidden benchmark. The score is
+produced by model-generated code, so its reliability depends on the
+generated validation procedure.</p>
+<h3 id="public-safety-and-validity-limits">7.2 Public safety and
+validity limits</h3>
+<p>The public executor provides a subprocess and timeout. It is not a
+complete security sandbox.</p>
+<p>The code-generation prompt can instruct a generated pipeline to
+check:</p>
+<ul>
+<li>ID overlap</li>
+<li>row fingerprints</li>
+<li>temporal ordering</li>
+<li>byte-identical media</li>
+</ul>
+<p>These are prompt-specified safeguards. Public main does not
+independently enforce the audit or verify the validity of the split.</p>
+<p>The poster describes explicit execution opt-in, isolated-worker
+attestation, and opt-in dummy fallback. Those hardened controls are not
+present in public main. After all initial attempts fail, public main
+automatically creates a dummy submission.</p>
+<p>The configured token field supports accounting. The active execution
+path does not use it as a hard admission gate.</p>
+<h2 id="source-reported-evaluation">8. Source-reported evaluation</h2>
+<p><strong>Evidence class: Source-reported Spatial Atlas
+results</strong></p>
+<p>The following values are transcribed from the Spatial Atlas v2
+preprint. The public repository contains the manuscript tables, but it
+does not contain the sealed task-level artifacts, frozen run manifest,
+repeated-run evidence, or matching current pipeline needed to reproduce
+them.</p>
+<h3 id="fieldworkarena">8.1 FieldWorkArena</h3>
+<table>
+<thead>
+<tr>
+<th>Configuration</th>
+<th style="text-align: right;">Factory</th>
+<th style="text-align: right;">Warehouse</th>
+<th style="text-align: right;">Retail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Overall</td>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">68</td>
+<td style="text-align: right;">74</td>
+</tr>
+<tr>
+<td>w/o Spatial Scene Graph</td>
+<td style="text-align: right;">51</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">55</td>
+</tr>
+<tr>
+<td>w/o Entropy-Guided Reasoning</td>
+<td style="text-align: right;">65</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">67</td>
+</tr>
+<tr>
+<td>w/o Florence-2</td>
+<td style="text-align: right;">63</td>
+<td style="text-align: right;">58</td>
+<td style="text-align: right;">66</td>
+</tr>
+<tr>
+<td>GPT-4V Direct</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">52</td>
+</tr>
+</tbody>
+</table>
+<p>The reported difference between Overall and the no-scene-graph row is
+21, 24, and 19 points across the three displayed environments.</p>
+<p>That comparison is consistent with the CGR hypothesis, but it does
+not isolate geometric correctness. Removing the graph can also change
+prompt structure, token allocation, intermediate representation, and the
+information shown to the final model.</p>
+<p>A stronger control would keep the schema and prompt length fixed
+while corrupting only the geometry. The current public package does not
+report that control.</p>
+<p>The source also does not provide per-environment task counts,
+confidence intervals, or repeated-run variance. The three columns should
+not be described as independent replications.</p>
+<h3 id="mle-bench">8.2 MLE-Bench</h3>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th style="text-align: right;">Valid (%)</th>
+<th style="text-align: right;">Medal (%)</th>
+<th style="text-align: right;">Competitions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tabular</td>
+<td style="text-align: right;">91</td>
+<td style="text-align: right;">42</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
+<td>NLP</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr>
+<td>Vision</td>
+<td style="text-align: right;">65</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">12</td>
+</tr>
+<tr>
+<td>Time Series</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td>Other</td>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td><strong>Overall</strong></td>
+<td style="text-align: right;"><strong>82</strong></td>
+<td style="text-align: right;"><strong>32</strong></td>
+<td style="text-align: right;"><strong>75</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The displayed category counts sum to 75. Weighted means of the
+displayed, rounded category rates round to the displayed Overall
+rates:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mn>91</mn><mo stretchy="false" form="prefix">(</mo><mn>32</mn><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>78</mn><mo stretchy="false" form="prefix">(</mo><mn>18</mn><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>65</mn><mo stretchy="false" form="prefix">(</mo><mn>12</mn><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>85</mn><mo stretchy="false" form="prefix">(</mo><mn>8</mn><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>72</mn><mo stretchy="false" form="prefix">(</mo><mn>5</mn><mo stretchy="false" form="postfix">)</mo></mrow><mn>75</mn></mfrac><mo>=</mo><mn>81.81</mn></mrow><annotation encoding="application/x-tex">
+\frac{91(32)+78(18)+65(12)+85(8)+72(5)}{75}
+=81.81
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mn>42</mn><mo stretchy="false" form="prefix">(</mo><mn>32</mn><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>28</mn><mo stretchy="false" form="prefix">(</mo><mn>18</mn><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>15</mn><mo stretchy="false" form="prefix">(</mo><mn>12</mn><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>35</mn><mo stretchy="false" form="prefix">(</mo><mn>8</mn><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>20</mn><mo stretchy="false" form="prefix">(</mo><mn>5</mn><mo stretchy="false" form="postfix">)</mo></mrow><mn>75</mn></mfrac><mo>=</mo><mn>32.11</mn></mrow><annotation encoding="application/x-tex">
+\frac{42(32)+28(18)+15(12)+35(8)+20(5)}{75}
+=32.11
+</annotation></semantics></math></p>
+<p>This is an arithmetic consistency check only. It does not recover raw
+outcome counts, repeated attempts, hidden denominators, variance,
+confidence intervals, or the aggregation protocol used by the
+source.</p>
+<h2 id="why-spatialclaw-appears">9. Why SpatialClaw appears</h2>
+<h3 id="upstream-mechanism">9.1 Upstream mechanism</h3>
+<p><strong>Evidence class: Upstream SpatialClaw</strong></p>
+<p>SpatialClaw is a separate project by Cho and colleagues. It treats
+code as an action interface. Its agent writes one AST-checked Python
+cell at each step into a persistent Jupyter kernel, observes
+intermediate outputs, and can compose, recompute, or revise operations
+before returning an answer.</p>
+<p>SpatialClaw also exposes wrappers around SAM3, Depth-Anything-3, and
+geometry utilities. The underlying perception models have their own
+authors and licenses. Attribution to SpatialClaw concerns its action
+interface, framework, and wrappers.</p>
+<h3 id="upstream-results">9.2 Upstream results</h3>
+<p><strong>Evidence class: Upstream SpatialClaw result</strong></p>
+<p>The SpatialClaw paper reports:</p>
+<ul>
+<li>59.9 percent average accuracy across 20 spatial reasoning
+benchmarks</li>
+<li>an 11.2-point improvement over the prior best spatial agent</li>
+</ul>
+<p>These are SpatialClaw results. They are not Spatial Atlas results and
+should not be compared directly with the two Spatial Atlas preprint
+tables.</p>
+<h2 id="local-poster-described-metric-bridge">10. Local poster-described
+metric bridge</h2>
+<p><strong>Evidence class: Local poster-described
+integration</strong></p>
+<p>The poster describes a local bridge that replaces model-estimated
+two-dimensional scene coordinates with evidence derived from object
+masks and a reconstructed point map.</p>
+<p>The described sequence is:</p>
+<ol type="1">
+<li>Obtain object masks and a reconstructed point map.</li>
+<li>Erode masks to reduce boundary contamination.</li>
+<li>Keep finite points that satisfy a confidence requirement.</li>
+<li>Build deterministic horizontal XZ voxel representatives.</li>
+<li>Compute directed nearest-neighbor fifth percentiles in both
+directions.</li>
+<li>Take the smaller directed value as a surface-gap estimate.</li>
+<li>Validate range, provenance, protocol contracts, and evidence hashes
+before returning the value.</li>
+</ol>
+<p>For reconstructed object point sets
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>,
+the poster writes:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mrow><mi>A</mi><mo>→</mo><mi>B</mi></mrow></msub><mo>=</mo><msub><mi>Q</mi><mn>0.05</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">{</mo><munder><mi>min</mi><mrow><mi>b</mi><mo>∈</mo><mi>B</mi></mrow></munder><msub><mrow><mo stretchy="true" form="prefix">‖</mo><mi>a</mi><mo>−</mo><mi>b</mi><mo stretchy="true" form="postfix">‖</mo></mrow><mrow><mi>X</mi><mi>Z</mi></mrow></msub><mo>:</mo><mi>a</mi><mo>∈</mo><mi>A</mi><mo stretchy="true" form="postfix">}</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+d_{A\rightarrow B}
+=Q_{0.05}\left(
+\left\{
+\min_{b\in B}\lVert a-b\rVert_{XZ}:a\in A
+\right\}
+\right)
+</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>d</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>A</mi><mo>,</mo><mi>B</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi>min</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>d</mi><mrow><mi>A</mi><mo>→</mo><mi>B</mi></mrow></msub><mo>,</mo><msub><mi>d</mi><mrow><mi>B</mi><mo>→</mo><mi>A</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
+\hat d(A,B)=\min(d_{A\rightarrow B},d_{B\rightarrow A})
+</annotation></semantics></math></p>
+<p>The fifth percentile reduces sensitivity to a single stray point. It
+does not solve occlusion, recover unseen surfaces, or turn reconstructed
+depth into physical ground truth.</p>
+<p>The bridge estimates clearance between visible reconstructed
+surfaces. Mask, depth, scale, visibility, and reconstruction errors can
+propagate into the reported value. A safety-oriented system should
+expose coverage and uncertainty and refuse a claim when the required
+surfaces are not observed.</p>
+<p>This bridge is described on the poster but is absent from public
+main. The public repository therefore cannot demonstrate the local
+implementation or its experimental behavior.</p>
+<h2 id="proposed-integration">11. Proposed integration</h2>
+<p><strong>Evidence class: Proposed</strong></p>
+<p>The complete Figure 2 path is not deployed end to end. Three
+connections remain proposed:</p>
+<ol type="1">
+<li><strong>Persistent action loop:</strong> connect Atlas evidence
+state to a kernel where the agent can inspect, compose, recompute, and
+revise operations.</li>
+<li><strong>Evidence-use journal:</strong> record the exact facts and
+tool outputs consumed by each answer.</li>
+<li><strong>Verifier contract:</strong> count an answer only when its
+evidence is fresh, valid, and attested.</li>
+</ol>
+<p>These components would make the CGR claim testable at the answer
+boundary. A fact sheet in a prompt is not enough to prove that the model
+used the fact.</p>
+<h2 id="what-the-poster-contributes">12. What the poster
+contributes</h2>
+<p>The strongest defensible public contribution is the typed,
+inspectable computation boundary:</p>
+<ul>
+<li>a two-handler Agent-to-Agent server</li>
+<li>a typed scene graph</li>
+<li>deterministic graph operations</li>
+<li>fact-sheet serialization</li>
+<li>a confidence-gated FieldWork refinement path</li>
+<li>MLE pipeline repair and score parsing</li>
+<li>score-gated rollback on a pipeline-emitted validation proxy</li>
+</ul>
+<p>The contribution is not that Spatial Atlas has solved geometric
+perception. It is that the system identifies where evidence enters,
+where code derives a fact, and where language generation begins.</p>
+<h2 id="what-remains-unresolved">13. What remains unresolved</h2>
+<p>The main open questions are:</p>
+<ol type="1">
+<li>Does correct geometry help when schema, prompt structure, and token
+budget are held fixed?</li>
+<li>How should uncertainty and missing evidence propagate through graph
+queries and constraints?</li>
+<li>Can a metric bridge refuse unsupported clearance questions
+reliably?</li>
+<li>Which validation evidence makes a generated MLE score
+trustworthy?</li>
+<li>Can an evidence journal prove which facts the final answer
+consumed?</li>
+<li>Can a verifier reject stale, invalid, or unattested evidence before
+scoring?</li>
+</ol>
+<p>The most informative next FieldWork experiment is a schema-matched
+corruption control. Keep the graph format and final prompt fixed. Change
+only the correctness of the geometric values. This separates the benefit
+of structured prompting from the benefit of accurate computation.</p>
+<h2 id="claim-boundary-checklist">14. Claim-boundary checklist</h2>
+<h3 id="safe-as-public-implementation">Safe as public
+implementation</h3>
+<ul>
+<li>Public Spatial Atlas routes to FieldWorkArena and MLE-Bench
+handlers.</li>
+<li>Public FieldWork builds a typed scene graph.</li>
+<li>Public graph code computes selected two-dimensional Euclidean
+distances.</li>
+<li>Public graph code supports radius queries, constraint checks, and
+fact-sheet serialization.</li>
+<li>Public FieldWork performs one answer, one self-grade, and at most
+one refinement below 0.6.</li>
+<li>Public MLE code repairs failures, parses
+<code>VALIDATION_SCORE</code>, and retains an improving parsed
+score.</li>
+</ul>
+<h3 id="state-only-as-source-reported-spatial-atlas-results">State only
+as source-reported Spatial Atlas results</h3>
+<ul>
+<li>FieldWorkArena values in the displayed preprint table.</li>
+<li>MLE-Bench values in the displayed preprint table.</li>
+<li>Any paper claim about the contribution of an ablated component.</li>
+<li>The full entropy and progressive model-routing policy.</li>
+</ul>
+<h3 id="attribute-to-upstream-spatialclaw">Attribute to upstream
+SpatialClaw</h3>
+<ul>
+<li>The persistent AST-checked Python action loop.</li>
+<li>SpatialClaw perception and geometry wrappers.</li>
+<li>59.9 percent average accuracy across 20 benchmarks.</li>
+<li>The 11.2-point improvement over the prior best spatial agent.</li>
+</ul>
+<h3 id="state-only-as-local-poster-described-integration">State only as
+local poster-described integration</h3>
+<ul>
+<li>The mask erosion, point filtering, XZ voxelization, symmetric
+fifth-percentile surface-gap estimator, and strict bridge
+validation.</li>
+</ul>
+<h3 id="state-only-as-proposed">State only as proposed</h3>
+<ul>
+<li>The end-to-end persistent-kernel connection.</li>
+<li>The evidence-use journal.</li>
+<li>The post-kernel verifier.</li>
+</ul>
+<h3 id="do-not-claim">Do not claim</h3>
+<ul>
+<li>The public repository reproduces either result table.</li>
+<li>Model-estimated two-dimensional coordinates are measured
+geometry.</li>
+<li>The graph recomputes every supplied relation distance.</li>
+<li>The FieldWork self-grade is calibrated.</li>
+<li>Public MLE execution is a complete sandbox.</li>
+<li>Prompted leak checks are an independently enforced audit.</li>
+<li>Figure 2 is deployed end to end.</li>
+<li>SpatialClaw results belong to Spatial Atlas.</li>
+<li>A missing cost, latency, uncertainty, or refusal value can be
+estimated from the poster.</li>
+</ul>
+<h2 id="public-source-index">15. Public source index</h2>
+<ul>
+<li><a href="https://github.com/arunshar/spatial-atlas">Spatial Atlas
+repository</a></li>
+<li><a href="https://arxiv.org/abs/2604.12102v2">Spatial Atlas v2
+preprint</a></li>
+<li><a href="spatial_atlas_poster.pdf">Spatial Atlas poster PDF</a></li>
+<li><a href="spatial_atlas_poster.tex">Spatial Atlas poster
+source</a></li>
+<li><a href="POSTER_NARRATIVE.md">Poster narrative</a></li>
+<li><a href="POSTER_QA_PACKET.md">Poster Q&amp;A packet</a></li>
+<li><a href="https://github.com/NVlabs/SpatialClaw">SpatialClaw
+repository</a></li>
+<li><a href="https://arxiv.org/abs/2606.13673">SpatialClaw
+paper</a></li>
+</ul>
+<h2 id="one-sentence-take-away">16. One-sentence take-away</h2>
+<p>Spatial Atlas makes an agent’s evidence and deterministic work more
+visible before language generation, while the poster explicitly
+separates that public implementation from source-reported results,
+upstream SpatialClaw, a local metric bridge, and the proposed verifier
+path.</p>
+</body>
+</html>
