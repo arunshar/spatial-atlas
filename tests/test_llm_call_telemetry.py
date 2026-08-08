@@ -14,7 +14,6 @@ from config import Config
 from cost.tracker import CostTracker
 from llm import LLMClient
 
-
 pytestmark = pytest.mark.unit
 
 

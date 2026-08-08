@@ -12,8 +12,8 @@ The detector is optional. If the model cannot be loaded (no GPU or dependencies)
 the pipeline falls back gracefully to pure VLM analysis.
 """
 
-import io
 import importlib.util
+import io
 import logging
 from dataclasses import dataclass, field
 

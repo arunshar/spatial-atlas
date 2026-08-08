@@ -7,7 +7,6 @@ Fast for classification/parsing, Standard for reasoning/code, Strong for spatial
 
 from config import Config
 
-
 # Task types mapped to model tiers
 FAST_TASKS = {"classify", "parse", "format", "extract_text", "detect_format"}
 STANDARD_TASKS = {"code_gen", "analyze", "plan", "reason", "summarize"}

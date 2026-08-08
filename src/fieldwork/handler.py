@@ -20,12 +20,12 @@ from a2a.types import TaskState
 from a2a.utils import new_agent_text_message
 
 from config import Config
-from llm import LLMClient
-from fieldwork.parser import GoalParser
-from fieldwork.vision import VisionPipeline
-from fieldwork.spatial import SpatialAnalyzer
-from fieldwork.reasoner import FieldWorkReasoner
 from fieldwork.formatter import AnswerFormatter
+from fieldwork.parser import GoalParser
+from fieldwork.reasoner import FieldWorkReasoner
+from fieldwork.spatial import SpatialAnalyzer
+from fieldwork.vision import VisionPipeline
+from llm import LLMClient
 
 logger = logging.getLogger("spatial-atlas.fieldwork")
 
@@ -172,7 +172,7 @@ class FieldWorkHandler:
                     self.last_metric_grounding,
                     scene.entity_count,
                 )
-            except Exception as e:  # noqa: BLE001 - fallback by default, strict in evals
+            except Exception as e:
                 self.last_fieldwork_engine = "metric_failed"
                 if qspatial_metric or getattr(self.config, "fieldwork_metric_strict", False):
                     logger.error("metric backend failed in strict evaluation mode: %s", e)

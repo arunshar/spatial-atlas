@@ -3,10 +3,10 @@ that the downstream FieldWorkReasoner + AnswerFormatter consume unchanged."""
 
 import numpy as np
 import pytest
+from fakes import FakePerFrameMask, FakeReconstructTool, FakeSAM3
 
 from config import Config
 from fieldwork.perception import MetricPerceptionBackend
-from fakes import FakePerFrameMask, FakeReconstructTool, FakeSAM3
 
 pytestmark = pytest.mark.unit
 

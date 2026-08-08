@@ -8,8 +8,8 @@ Tests domain classification, message parsing, and formatting logic
 import json
 
 from config import Config
-from fieldwork.parser import GoalParser
 from fieldwork.formatter import AnswerFormatter
+from fieldwork.parser import GoalParser
 
 
 class TestDomainClassification:

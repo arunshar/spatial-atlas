@@ -4,6 +4,8 @@ Used to test the metric perception backend's orchestration + geometry by behavio
 not by patching internals (fakes-over-mocks, per Google testing guidance).
 """
 
+from typing import ClassVar
+
 import numpy as np
 
 
@@ -27,11 +29,11 @@ class FakePerFrameMask:
         self.frame_indices = [0]
         self._centroid = centroid
 
-    def get_mask(self, frame, object=0):  # noqa: A002 - mirrors real signature
+    def get_mask(self, frame, object=0):
         assert frame == 0
         return self.masks[0, object]
 
-    def get_centroid_3d(self, recon, frame, object):  # noqa: A002 - mirrors real signature
+    def get_centroid_3d(self, recon, frame, object):
         return None if self.num_objects == 0 else self._centroid
 
 
@@ -63,7 +65,7 @@ class _FakePoints:
 
 
 class _FakeRecon:
-    frame_indices = [0]
+    frame_indices: ClassVar[list[int]] = [0]
     metric_scale = 1.0
 
     def __init__(self, points, confidence):
@@ -92,7 +94,7 @@ class FakeReconstructTool:
         self.confidence = confidence
         self.calls = 0
 
-    def Reconstruct(self, frames):  # noqa: N802 - mirrors real method name
+    def Reconstruct(self, frames):
         self.calls += 1
         return _FakeRecon(self.points, self.confidence)
 

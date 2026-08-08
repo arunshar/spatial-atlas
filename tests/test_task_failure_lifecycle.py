@@ -1,6 +1,7 @@
 """Tests that task failures cannot be reported as successful completions."""
 
 from types import SimpleNamespace
+from typing import ClassVar
 from unittest.mock import AsyncMock
 
 import pytest
@@ -12,7 +13,7 @@ from fieldwork.vision import VisionPipeline
 
 
 class RecordingUpdater:
-    instances = []
+    instances: ClassVar[list] = []
 
     def __init__(self, _queue, _task_id, _context_id):
         self._terminal_state_reached = False

@@ -19,8 +19,8 @@ pytestmark = [pytest.mark.e2e, pytest.mark.gpu]
 @pytest.mark.asyncio
 async def test_metric_distance_on_warehouse_png():
     from config import Config
-    from llm import LLMClient
     from fieldwork.perception import build_metric_scene
+    from llm import LLMClient
 
     img = (Path(__file__).parent / "test_warehouse.png").read_bytes()
     scene = await build_metric_scene(

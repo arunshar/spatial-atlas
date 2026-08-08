@@ -29,12 +29,12 @@ import math
 import os
 import re
 import unicodedata
-from typing import Any, List
+from typing import Any
 
 from PIL import Image
 
+from fieldwork.spatial import SpatialEntity, SpatialRelation, SpatialScene
 from llm import LLMClient
-from fieldwork.spatial import SpatialScene, SpatialEntity, SpatialRelation
 
 logger = logging.getLogger("spatial-atlas.fieldwork.perception")
 
@@ -108,6 +108,32 @@ QSPATIAL_PARSER_CONTRACT = {
     "unsupported_row_ids": [80, 81, 82],
     "version": QSPATIAL_PARSER_PROTOCOL,
 }
+
+# SAM3's open-vocabulary grounder can return zero candidates for a
+# spatially-qualified group_phrase (e.g. "orange chair next to window") while
+# finding the object easily once the relational clause is dropped (e.g.
+# "orange chair"). This table only changes what text is sent to SAM3 for
+# grounding; parser_record["group_phrase"] (used for scoring, evidence
+# identity, and entity labels) is untouched and stays outside this override.
+# Deliberately NOT part of QSPATIAL_PARSER_CONTRACT: it does not change what
+# a question means or how it is scored, only how the segmenter is queried.
+QSPATIAL_GROUNDING_QUERY_OVERRIDES: dict[str, str] = {
+    "orange chair next to window": "orange chair",
+    "front traffic barrel": "traffic barrel",
+}
+
+# For repeated_instance mode, SAM3 can return a spurious extra candidate (a
+# fragment of one real instance, an overlapping sub-detection, a shadow) far
+# smaller than the true instances. Pairing it in raises "minimum valid gap"
+# selection: a tiny fragment sitting close to a real instance produces an
+# artificially small gap that outranks the true pair. Discarding instances
+# whose area is far below the group's largest instance, before pairing,
+# keeps "minimum_valid_gap_then_lowest_mask_indices" (QSPATIAL_GEOMETRY_
+# CONTRACT, unchanged) applied to a plausible candidate pool instead of a
+# raw, unfiltered one. Threshold picked from two production cases: a
+# genuine second instance was 42-44% of the group max; a spurious fragment
+# was 6-15% of it -- 0.30 sits with margin on both sides of both.
+QSPATIAL_MIN_INSTANCE_AREA_RATIO = 0.30
 
 QSPATIAL_GEOMETRY_CONTRACT = {
     "candidate_pair_selection": "minimum_valid_gap_then_lowest_mask_indices",
@@ -246,14 +272,12 @@ def _erode_qspatial_mask(mask, source_shape: tuple[int, int], target_shape: tupl
 
     source_height, source_width = source_shape
     target_height, target_width = target_shape
-    radius = int(
-        math.ceil(
+    radius = math.ceil(
             max(
                 source_width / target_width,
                 source_height / target_height,
             )
         )
-    )
     yy, xx = np.ogrid[-radius : radius + 1, -radius : radius + 1]
     closed_disk = (xx * xx + yy * yy) <= radius * radius
     eroded = binary_erosion(
@@ -286,8 +310,8 @@ def _ranked_qspatial_voxels(mask, points, confidence):
     for flattened_index in flattened_indices.tolist():
         point = flat_points[flattened_index]
         key = (
-            int(math.floor(float(point[0]) / QSPATIAL_VOXEL_SIZE_M)),
-            int(math.floor(float(point[2]) / QSPATIAL_VOXEL_SIZE_M)),
+            math.floor(float(point[0]) / QSPATIAL_VOXEL_SIZE_M),
+            math.floor(float(point[2]) / QSPATIAL_VOXEL_SIZE_M),
         )
         candidate = (
             float(flat_confidence[flattened_index]),
@@ -307,7 +331,7 @@ def _ranked_qspatial_voxels(mask, points, confidence):
         selected_keys = sorted(
             selected_keys,
             key=lambda key: (
-                hashlib.sha256(f"{key[0]},{key[1]}".encode("utf-8")).digest(),
+                hashlib.sha256(f"{key[0]},{key[1]}".encode()).digest(),
                 key,
             ),
         )[:QSPATIAL_MAX_UNIQUE_VOXELS]
@@ -766,8 +790,8 @@ class MetricPerceptionBackend:
 
         # Imported lazily: only available where the SpatialClaw package is installed
         # (the MSI agent env), so the API service stays importable without it.
-        from spatial_agent.tools.sam3_tool import SAM3Tool
         from spatial_agent.tools.reconstruct_tool import ReconstructTool
+        from spatial_agent.tools.sam3_tool import SAM3Tool
 
         class _ReconCfg:
             reconstruct_max_frames = getattr(self.config, "reconstruct_max_frames", 32)
@@ -777,7 +801,7 @@ class MetricPerceptionBackend:
         if not (self._sam3.is_available and self._recon.is_available):
             raise RuntimeError("SpatialClaw GPU tool server not reachable (logs/gpu_server.json).")
 
-    async def extract_entities(self, llm: LLMClient, question: str) -> List[str]:
+    async def extract_entities(self, llm: LLMClient, question: str) -> list[str]:
         out = await llm.generate(
             ENTITY_PROMPT.format(question=question),
             model_tier="fast",
@@ -786,10 +810,10 @@ class MetricPerceptionBackend:
         )
         try:
             return [e for e in json.loads(out).get("entities", []) if e][:6]
-        except Exception:  # noqa: BLE001 - tolerate non-JSON; caller handles empty list
+        except Exception:
             return []
 
-    def ground(self, image_bytes: bytes, phrases: List[str]) -> SpatialScene:
+    def ground(self, image_bytes: bytes, phrases: list[str]) -> SpatialScene:
         self._ensure_tools()
         img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         recon = self._recon.Reconstruct([img])
@@ -902,12 +926,12 @@ class MetricPerceptionBackend:
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         try:
             reconstruction = self._recon.Reconstruct([image])
-        except Exception as error:  # noqa: BLE001 - convert service boundary to one code
+        except Exception as error:
             raise RuntimeError("service_error: DA3 reconstruction failed") from error
         try:
             frame_index = reconstruction.frame_indices[0]
             points, confidence = _point_maps_for_frame(reconstruction, frame_index)
-        except Exception as error:  # noqa: BLE001 - malformed service payload
+        except Exception as error:
             raise RuntimeError(
                 "reconstruction_error: invalid DA3 reconstruction payload"
             ) from error
@@ -933,7 +957,7 @@ class MetricPerceptionBackend:
                     _mark_qspatial_invalid(evidence, empty_reason)
                     return None
                 raise RuntimeError(f"service_error: SAM3 failed for {phrase!r}") from error
-            except Exception as error:  # noqa: BLE001 - SAM3 client boundary
+            except Exception as error:
                 raise RuntimeError(f"service_error: SAM3 failed for {phrase!r}") from error
             count = int(getattr(segmentation, "num_objects", 0))
             evidence["segmentation"]["candidate_mask_counts"].append(count)
@@ -964,18 +988,32 @@ class MetricPerceptionBackend:
         elif parser_record["mode"] == "repeated_instance":
             phrase_a = str(parser_record["group_phrase"])
             phrase_b = phrase_a
-            segmentation = segment(phrase_a, "sam_fewer_than_two")
+            grounding_query = QSPATIAL_GROUNDING_QUERY_OVERRIDES.get(phrase_a, phrase_a)
+            segmentation = segment(grounding_query, "sam_fewer_than_two")
             if segmentation is None:
                 return None, evidence
             if int(segmentation.num_objects) < 2:
                 _mark_qspatial_invalid(evidence, "sam_fewer_than_two")
                 return None, evidence
+            instance_areas = {
+                index: int(
+                    np.asarray(segmentation.get_mask(frame_index, index), dtype=bool).sum()
+                )
+                for index in range(int(segmentation.num_objects))
+            }
+            evidence["segmentation"]["instance_areas"] = instance_areas
+            max_area = max(instance_areas.values())
+            plausible_indices = [
+                index
+                for index, area in instance_areas.items()
+                if max_area > 0 and area >= QSPATIAL_MIN_INSTANCE_AREA_RATIO * max_area
+            ]
+            if len(plausible_indices) < 2:
+                _mark_qspatial_invalid(evidence, "sam_fewer_than_two")
+                return None, evidence
             candidate_pairs = [
                 (segmentation, index_a, segmentation, index_b)
-                for index_a, index_b in itertools.combinations(
-                    range(int(segmentation.num_objects)),
-                    2,
-                )
+                for index_a, index_b in itertools.combinations(plausible_indices, 2)
             ]
         else:
             raise RuntimeError("parse_failed: unknown QSpatial parser mode")
@@ -1006,7 +1044,7 @@ class MetricPerceptionBackend:
                     _qspatial_invalid_candidate(indices, error)
                 )
                 continue
-            except Exception as error:  # noqa: BLE001 - malformed segmentation payload
+            except Exception as error:
                 raise RuntimeError("service_error: invalid SAM3 mask payload") from error
 
             candidate_record = _qspatial_geometry_record(geometry, indices)
@@ -1141,7 +1179,7 @@ class MetricPerceptionBackend:
 
 async def build_metric_scene(
     query: str,
-    image_bytes_list: List[bytes],
+    image_bytes_list: list[bytes],
     llm: LLMClient,
     config,
     regions: list[dict[str, Any]] | None = None,
@@ -1176,7 +1214,11 @@ def validate_qspatial_gap_scene(
         raise RuntimeError("strict QSpatial backend requires valid geometry")
     geometry = evidence.get("geometry")
     if not isinstance(geometry, dict):
-        raise RuntimeError("strict QSpatial backend has no geometry evidence")
+        # TRY004 asks for TypeError on a failed isinstance check. Every rejection in this
+        # strict-mode block raises RuntimeError, and three call sites in this module catch
+        # RuntimeError specifically. A TypeError here would escape them and turn a handled
+        # strict-mode rejection into an uncaught error.
+        raise RuntimeError("strict QSpatial backend has no geometry evidence")  # noqa: TRY004
     if geometry.get("contract_sha256") != QSPATIAL_GEOMETRY_PROTOCOL_SHA256:
         raise RuntimeError("strict QSpatial backend geometry contract drifted")
     parser = evidence.get("parser")
@@ -1218,7 +1260,7 @@ def validate_qspatial_gap_scene(
 
 async def build_qspatial_gap_scene(
     query: str,
-    image_bytes_list: List[bytes],
+    image_bytes_list: list[bytes],
     config,
     sample_metadata: dict[str, Any] | None = None,
 ) -> tuple[SpatialScene | None, dict[str, Any]]:

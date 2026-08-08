@@ -16,8 +16,6 @@ from __future__ import annotations
 
 import dataclasses
 
-import pytest
-
 from src.mlebench.strategies import leaks
 from src.mlebench.strategies.leaks import LeakHint, match_leak
 

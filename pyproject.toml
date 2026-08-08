@@ -43,10 +43,35 @@ packages = ["src"]
 line-length = 100
 target-version = "py312"
 
+[tool.ruff.lint]
+# BLE001 flags `except Exception`. Every occurrence in src/ is a deliberate boundary
+# catch whose job is to degrade instead of crash: optional model loading in
+# fieldwork/detector.py and fieldwork/vision.py sets `_available = False` and carries on,
+# and the leak-detector registry in mlebench/strategies/leaks.py must survive a malformed
+# third-party detector. That handler already caused an outage once by raising inside its
+# own except clause, fixed in 2e593f1, which argues for keeping the catch broad rather
+# than narrowing it. Narrowing sixteen call sites would trade a lint clean for real
+# fragility, so the rule is disabled project-wide rather than suppressed sixteen times.
+ignore = ["BLE001"]
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 asyncio_mode = "auto"
 addopts = "-m 'not e2e and not gpu' -ra"
+# Bare `pytest` at the repo root used to collect sessions/fable/work, where the one-use
+# warm-control bundles live. Those suites are written against draft (guarded) bytes, so once a
+# bundle is armed a stray collection can run a test body that performs a real invocation and
+# permanently consumes a one-shot identity. That is not hypothetical: the b73e20c5 readiness-monitor
+# identity was consumed exactly this way; the Slurm job its output happened to name was unaffected.
+# Pinning testpaths closes the root-invocation vector while keeping both real suites in scope.
+# It is only the first of three layers. pytest applies testpaths ONLY when the invocation
+# directory is the rootdir (the `invocation_dir == rootpath` gate in _pytest/config/__init__.py);
+# from any other cwd it collects from the invocation directory instead and testpaths is skipped
+# entirely. Layer 2 is sessions/fable/work/conftest.py, which stops recursion from any cwd, and
+# layer 3 is the tracked repo-root conftest.py, which catches a file or node id named explicitly
+# on the command line. A missing entry here is globbed away without error, so CI, where
+# .gitignore keeps sessions/ out of the checkout, is unaffected.
+testpaths = ["tests", "sessions/msi"]
 markers = [
     "unit: fast hermetic unit tests (no network/GPU)",
     "integration: local-fixture integration tests",

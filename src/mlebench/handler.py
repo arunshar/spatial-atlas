@@ -26,7 +26,6 @@ import time
 from pathlib import Path, PurePosixPath
 
 import pandas as pd
-
 from a2a.server.tasks import TaskUpdater
 from a2a.types import TaskState
 from a2a.utils import new_agent_text_message

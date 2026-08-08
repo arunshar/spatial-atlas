@@ -3,8 +3,9 @@
 All sub-components are mocked; we assert which scene path runs under each
 ATLAS_FIELDWORK_ENGINE setting and that the metric path degrades gracefully."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from fieldwork.spatial import SpatialEntity, SpatialRelation, SpatialScene
 
@@ -54,7 +55,7 @@ def _metric_scene(entity_count=2):
 
 
 def _qspatial_scene_and_evidence():
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     scene = SpatialScene()
     provenance = "sam3+da3-horizontal-surface-gap"
@@ -100,7 +101,7 @@ async def test_scenegraph_path_skips_metric():
 @pytest.mark.asyncio
 async def test_metric_success_uses_metric_scene(monkeypatch):
     h = _handler("metric")
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     fake_scene = _metric_scene()
     monkeypatch.setattr(perception, "build_metric_scene", AsyncMock(return_value=fake_scene))
@@ -117,7 +118,7 @@ async def test_metric_success_uses_metric_scene(monkeypatch):
 @pytest.mark.asyncio
 async def test_metric_forwards_raw_image_and_exact_regions(monkeypatch):
     h = _handler("metric")
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     build = AsyncMock(return_value=_metric_scene())
     monkeypatch.setattr(perception, "build_metric_scene", build)
@@ -145,7 +146,7 @@ async def test_metric_forwards_raw_image_and_exact_regions(monkeypatch):
 @pytest.mark.asyncio
 async def test_metric_failure_falls_back_to_scenegraph(monkeypatch):
     h = _handler("metric")
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     monkeypatch.setattr(
         perception,
@@ -162,7 +163,7 @@ async def test_metric_failure_falls_back_to_scenegraph(monkeypatch):
 @pytest.mark.asyncio
 async def test_exact_region_failure_preserves_production_fallback(monkeypatch):
     h = _handler("metric")
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     build = AsyncMock(side_effect=RuntimeError("bad RLE"))
     monkeypatch.setattr(perception, "build_metric_scene", build)
@@ -186,7 +187,7 @@ async def test_exact_region_failure_preserves_production_fallback(monkeypatch):
 async def test_metric_strict_failure_is_not_mislabeled_as_scenegraph(monkeypatch):
     h = _handler("metric")
     h.config.fieldwork_metric_strict = True
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     monkeypatch.setattr(
         perception,
@@ -206,7 +207,7 @@ async def test_metric_strict_failure_is_not_mislabeled_as_scenegraph(monkeypatch
 async def test_metric_strict_rejects_unusable_geometry(monkeypatch, entity_count):
     h = _handler("metric")
     h.config.fieldwork_metric_strict = True
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     monkeypatch.setattr(
         perception,
@@ -225,7 +226,7 @@ async def test_metric_strict_rejects_unusable_geometry(monkeypatch, entity_count
 @pytest.mark.asyncio
 async def test_qspatial_metric_uses_frozen_gap_path(monkeypatch):
     h = _handler("metric")
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     scene, evidence = _qspatial_scene_and_evidence()
     build = AsyncMock(return_value=(scene, evidence))
@@ -253,7 +254,7 @@ async def test_qspatial_metric_uses_frozen_gap_path(monkeypatch):
 @pytest.mark.asyncio
 async def test_qspatial_expected_invalid_returns_sentinel_without_fallback(monkeypatch):
     h = _handler("metric")
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     evidence = {
         "geometry_valid": False,
@@ -286,7 +287,7 @@ async def test_qspatial_expected_invalid_returns_sentinel_without_fallback(monke
 @pytest.mark.asyncio
 async def test_qspatial_service_error_never_falls_back(monkeypatch):
     h = _handler("metric")
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     monkeypatch.setattr(
         perception,
@@ -313,7 +314,7 @@ async def test_qspatial_service_error_never_falls_back(monkeypatch):
 async def test_qspatial_metric_requires_the_raw_question(monkeypatch, missing_question):
     """Regression for war story #112: the composed goal must never reach the parser."""
     h = _handler("metric")
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     build = AsyncMock()
     monkeypatch.setattr(perception, "build_qspatial_gap_scene", build)
@@ -336,7 +337,7 @@ async def test_qspatial_metric_requires_the_raw_question(monkeypatch, missing_qu
 async def test_qspatial_metric_parses_the_raw_question_not_the_goal_query(monkeypatch):
     """The frozen parser and evidence hashes consume metric_question, not task.query."""
     h = _handler("metric")
-    import fieldwork.perception as perception
+    from fieldwork import perception
 
     scene, evidence = _qspatial_scene_and_evidence()
     build = AsyncMock(return_value=(scene, evidence))

@@ -137,7 +137,7 @@ class CodeExecutor:
                 logger.error("No submission.csv found after execution")
                 return None
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self.last_error = f"Code execution timed out after {self.timeout}s"
             logger.error(self.last_error)
             return None
@@ -219,7 +219,7 @@ class CodeExecutor:
         if proc.returncode is None:
             try:
                 await asyncio.wait_for(proc.wait(), timeout=2.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 try:
                     proc.kill()
                 except ProcessLookupError:

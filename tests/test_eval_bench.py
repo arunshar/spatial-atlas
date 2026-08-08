@@ -12,11 +12,10 @@ from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 import pytest
+from fakes import FakeFieldWorkHandler, FakeLLM
 
 import eval_bench as driver
 from cost.tracker import CostTracker
-from fakes import FakeFieldWorkHandler, FakeLLM
-
 
 pytestmark = pytest.mark.unit
 

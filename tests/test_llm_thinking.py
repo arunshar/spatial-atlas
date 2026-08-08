@@ -7,7 +7,6 @@ import llm as llm_module
 from config import Config
 from llm import LLMClient
 
-
 pytestmark = pytest.mark.unit
 
 

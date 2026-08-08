@@ -31,7 +31,7 @@ jobs:
           uvx --from pip-audit==2.10.1 pip-audit \
             --no-deps --disable-pip -r /tmp/requirements.txt
       - name: Lint application and tests
-        run: uv run --with ruff ruff check src tests
+        run: uv run --with ruff==0.16.2 ruff check src tests
       - name: Scan application security patterns
         run: uvx --from bandit==1.9.4 bandit -q -r src
       - name: Unit + integration + smoke (no GPU/dataset)

@@ -9,13 +9,13 @@ import math
 
 import numpy as np
 import pytest
+from fakes import FakePerFrameMask, FakeReconstructTool, FakeSAM3
 from hypothesis import given
 from hypothesis import strategies as st
 from PIL import Image
 
 from config import Config
 from fieldwork.perception import MetricPerceptionBackend
-from fakes import FakePerFrameMask, FakeReconstructTool, FakeSAM3
 
 pytestmark = pytest.mark.unit
 

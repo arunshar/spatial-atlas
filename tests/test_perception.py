@@ -1,15 +1,18 @@
 """Unit tests for the metric perception backend (hermetic; fakes injected)."""
 
-import pytest
 import asyncio
-import numpy as np
 import sys
 import threading
 import types
+from typing import ClassVar
 from unittest.mock import AsyncMock, MagicMock
 
+import numpy as np
+import pytest
+from fakes import FakePerFrameMask, FakeReconstructTool, FakeSAM3
+
 from config import Config
-import fieldwork.perception as perception
+from fieldwork import perception
 from fieldwork.perception import (
     MetricPerceptionBackend,
     build_metric_scene,
@@ -17,7 +20,6 @@ from fieldwork.perception import (
     validate_metric_scene,
 )
 from fieldwork.spatial import SpatialEntity, SpatialScene
-from fakes import FakePerFrameMask, FakeReconstructTool, FakeSAM3
 
 pytestmark = pytest.mark.unit
 
@@ -207,8 +209,8 @@ def _qspatial_metadata(row_id):
     [
         (
             0,
-            "What is the minimum distance between the coffee grinder and the base of "
-            "the gooseneck kettle in the image?",
+            ("What is the minimum distance between the coffee grinder and the base of "
+            "the gooseneck kettle in the image?"),
             "distinct_pair",
         ),
         (
@@ -218,8 +220,8 @@ def _qspatial_metadata(row_id):
         ),
         (
             35,
-            "What is the minimum distance between the wooden table and the bed frame near "
-            "the camera?",
+            ("What is the minimum distance between the wooden table and the bed frame near "
+            "the camera?"),
             "distinct_pair",
         ),
         (
@@ -234,8 +236,8 @@ def _qspatial_metadata(row_id):
         ),
         (
             57,
-            "What is the minimum distance between the parking meter and parking sign post "
-            "in the image?",
+            ("What is the minimum distance between the parking meter and parking sign post "
+            "in the image?"),
             "distinct_pair",
         ),
         (
@@ -285,8 +287,8 @@ def test_qspatial_parser_rejects_negative_space_without_tools(png_bytes):
     [
         ("", None, "nonempty string"),
         (
-            "What is the horizontal gap in the remaining area of the bookshelf next to the last "
-            "book on the left side?",
+            ("What is the horizontal gap in the remaining area of the bookshelf next to the last "
+            "book on the left side?"),
             0,
             "unexpected row ID",
         ),
@@ -525,6 +527,132 @@ def test_qspatial_repeated_instances_select_minimum_gap_then_indices(png_bytes):
     assert evidence["geometry"]["selected_mask_indices"] == [0, 1]
     assert evidence["geometry"]["gap_m"] == pytest.approx(0.05)
     assert backend._sam3.calls == [("bollard", {"confidence_threshold": 0.3})]
+
+
+def test_qspatial_repeated_instance_uses_grounding_query_override(png_bytes):
+    """SAM3 gets the shorter override phrase; scoring keeps the frozen group_phrase.
+
+    Regression guard for the "sam_fewer_than_two" zero-detection failure on
+    rows 23/65 (production job 14181136): SAM3's grounder returned zero
+    candidates for "front traffic barrel" but found instances for
+    "traffic barrel" alone. The override must change only the SAM3 query,
+    never the group_phrase used for entity labels/evidence identity.
+    """
+    points, confidence, left, right = _horizontal_gap_geometry()
+    question = "What is the gap between the two traffic barrels at the front in the image?"
+    parsed = perception.parse_qspatial_gap_question(question, row_id=65)
+    assert parsed["group_phrase"] == "front traffic barrel"
+    assert "front traffic barrel" in perception.QSPATIAL_GROUNDING_QUERY_OVERRIDES
+    masks = np.stack([left, right])[np.newaxis]
+    backend = _backend({"traffic barrel": FakePerFrameMask(2, masks=masks)})
+    backend._recon = FakeReconstructTool(points, confidence)
+
+    scene, evidence = backend.ground_horizontal_surface_gap(
+        png_bytes,
+        question,
+        parsed,
+        _qspatial_metadata(65),
+    )
+
+    assert scene is not None
+    assert backend._sam3.calls == [("traffic barrel", {"confidence_threshold": 0.3})]
+    assert evidence["segmentation"]["queries"] == ["traffic barrel"]
+    assert scene.entities["qspatial_a"].label == "front traffic barrel"
+    assert scene.entities["qspatial_b"].label == "front traffic barrel"
+
+
+def test_qspatial_repeated_instance_without_override_uses_group_phrase_directly(png_bytes):
+    """Rows with no override entry (e.g. "bollard") are unaffected."""
+    assert "bollard" not in perception.QSPATIAL_GROUNDING_QUERY_OVERRIDES
+    rows, columns = np.indices((12, 40))
+    points = np.zeros((12, 40, 3), dtype=float)
+    points[..., 0] = columns * 0.01
+    points[..., 2] = rows * 0.01
+    confidence = np.ones((12, 40), dtype=float)
+    masks = np.zeros((1, 2, 12, 40), dtype=bool)
+    masks[0, 0, 1:11, 1:11] = True
+    masks[0, 1, 1:11, 13:23] = True
+    question = "What is the minimum distance between the bollards in the image?"
+    parsed = perception.parse_qspatial_gap_question(question, row_id=49)
+    backend = _backend({"bollard": FakePerFrameMask(2, masks=masks)})
+    backend._recon = FakeReconstructTool(points, confidence)
+
+    scene, _evidence = backend.ground_horizontal_surface_gap(
+        png_bytes,
+        question,
+        parsed,
+        _qspatial_metadata(49),
+    )
+
+    assert scene is not None
+    assert backend._sam3.calls == [("bollard", {"confidence_threshold": 0.3})]
+
+
+def test_qspatial_repeated_instance_discards_spurious_small_fragment(png_bytes):
+    """A tiny fragment mask near a real instance must not win "minimum gap".
+
+    Regression guard for production job 14181136 row 23: SAM3 returned a
+    third, much smaller candidate (14.7% of the group's largest mask) sitting
+    close to one of the two real chairs. Unfiltered minimum-gap selection
+    picked the fragment pair (5cm) over the true pair (54cm, close to the
+    47cm ground truth). The two real instances here are the same left/right
+    pair as test_horizontal_surface_gap_follows_frozen_geometry_contract
+    (100px each); the fragment is a 2x2px patch hugging the right instance,
+    which is well under QSPATIAL_MIN_INSTANCE_AREA_RATIO (0.30) of 100px.
+    """
+    points, confidence, left, right = _horizontal_gap_geometry()
+    fragment = np.zeros_like(left)
+    fragment[1:3, 21:23] = True  # 2x2 = 4px, touches the right instance's edge
+    assert fragment.sum() < perception.QSPATIAL_MIN_INSTANCE_AREA_RATIO * left.sum()
+    masks = np.stack([left, right, fragment])[np.newaxis]
+    question = "What is the minimum distance between the bollards in the image?"
+    parsed = perception.parse_qspatial_gap_question(question, row_id=49)
+    backend = _backend({"bollard": FakePerFrameMask(3, masks=masks)})
+    backend._recon = FakeReconstructTool(points, confidence)
+
+    scene, evidence = backend.ground_horizontal_surface_gap(
+        png_bytes,
+        question,
+        parsed,
+        _qspatial_metadata(49),
+    )
+
+    assert scene is not None
+    assert evidence["segmentation"]["instance_areas"] == {
+        0: int(left.sum()),
+        1: int(right.sum()),
+        2: int(fragment.sum()),
+    }
+    # Only one pair (0, 1) survives the plausibility filter -- index 2 (the
+    # fragment) never enters candidate_pairs at all.
+    assert len(evidence["geometry"]["candidate_pairs"]) == 1
+    assert evidence["geometry"]["selected_mask_indices"] == [0, 1]
+    assert evidence["geometry"]["gap_m"] == pytest.approx(0.05)
+
+
+def test_qspatial_repeated_instance_fails_closed_when_fewer_than_two_plausible(png_bytes):
+    """Two tiny fragments plus one real instance is still "fewer than two"."""
+    points, confidence, left, _ = _horizontal_gap_geometry()
+    fragment_a = np.zeros_like(left)
+    fragment_a[1:3, 1:3] = True
+    fragment_b = np.zeros_like(left)
+    fragment_b[1:3, 21:23] = True
+    masks = np.stack([left, fragment_a, fragment_b])[np.newaxis]
+    question = "What is the minimum distance between the bollards in the image?"
+    parsed = perception.parse_qspatial_gap_question(question, row_id=49)
+    backend = _backend({"bollard": FakePerFrameMask(3, masks=masks)})
+    backend._recon = FakeReconstructTool(points, confidence)
+
+    scene, evidence = backend.ground_horizontal_surface_gap(
+        png_bytes,
+        question,
+        parsed,
+        _qspatial_metadata(49),
+    )
+
+    assert scene is None
+    assert evidence["geometry_valid"] is False
+    assert evidence["geometry"]["invalid_reason"] == "sam_fewer_than_two"
 
 
 def test_ground_measures_metric_distance(png_bytes):
@@ -800,7 +928,7 @@ class _RegionPoints:
 
 
 class _RegionRecon:
-    frame_indices = [7]
+    frame_indices: ClassVar[list[int]] = [7]
 
     def __init__(self):
         self.points = _RegionPoints()
@@ -809,12 +937,12 @@ class _RegionRecon:
 class _RegionReconTool:
     is_available = True
 
-    def Reconstruct(self, _frames):  # noqa: N802 - mirrors SpatialClaw
+    def Reconstruct(self, _frames):
         return _RegionRecon()
 
 
 class _RecordingMask:
-    instances = []
+    instances: ClassVar[list] = []
 
     def __init__(self, masks, labels, object_ids, frame_indices, frames):
         self.masks = masks
@@ -824,7 +952,7 @@ class _RecordingMask:
         self.frames = frames
         self.__class__.instances.append(self)
 
-    def get_centroid_3d(self, recon, frame, object):  # noqa: A002
+    def get_centroid_3d(self, recon, frame, object):
         assert object == 0
         points = recon.points[frame][self.masks[0, 0]]
         return np.median(points, axis=0)
@@ -881,7 +1009,7 @@ def test_exact_region_strict_rejects_empty_mask(monkeypatch, png_bytes):
 
 def test_exact_region_strict_rejects_nonfinite_centroid(monkeypatch, png_bytes):
     class NonfiniteMask(_RecordingMask):
-        def get_centroid_3d(self, recon, frame, object):  # noqa: A002
+        def get_centroid_3d(self, recon, frame, object):
             return np.array([np.nan, 1.0, 2.0])
 
     monkeypatch.setattr(
@@ -898,7 +1026,7 @@ def test_exact_region_strict_rejects_nonfinite_centroid(monkeypatch, png_bytes):
 @pytest.mark.parametrize("failure", ["empty", "nonfinite"])
 def test_exact_region_production_mode_skips_invalid_region(monkeypatch, png_bytes, failure):
     class ProductionMask(_RecordingMask):
-        def get_centroid_3d(self, recon, frame, object):  # noqa: A002
+        def get_centroid_3d(self, recon, frame, object):
             if failure == "nonfinite":
                 return np.array([np.nan, 1.0, 2.0])
             return super().get_centroid_3d(recon, frame, object)
@@ -920,7 +1048,7 @@ def test_exact_region_rejects_invalid_point_map(monkeypatch, png_bytes):
     class BadReconTool:
         is_available = True
 
-        def Reconstruct(self, _frames):  # noqa: N802
+        def Reconstruct(self, _frames):
             return type("BadRecon", (), {"frame_indices": [0], "points": BadPoints()})()
 
     backend = MetricPerceptionBackend(Config())

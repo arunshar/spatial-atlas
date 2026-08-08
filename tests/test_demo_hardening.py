@@ -19,7 +19,7 @@ from src.server import ConcurrencyLimitMiddleware
 
 
 def _app_with_limit(maximum: int) -> Starlette:
-    async def ok(request):  # noqa: ANN001
+    async def ok(request):
         return PlainTextResponse("ok")
 
     app = Starlette(routes=[Route("/", ok, methods=["GET", "POST"])])
@@ -79,7 +79,12 @@ def test_gpu_server_url_is_defaulted_so_discovery_cannot_hang(monkeypatch) -> No
 
     # spatial_agent is not installed in the test env, so the lazy import raises. The
     # env var must already be set by the time it does.
-    with pytest.raises(Exception):
+    # Both failure paths are in scope on purpose. Without spatial_agent installed the
+    # lazy import raises ImportError; with it installed but no reachable tool server,
+    # _ensure_tools raises RuntimeError. The assertion under test is that the env var
+    # is already set by the time either one fires, so narrowing to one would make the
+    # test pass or fail for reasons unrelated to what it checks.
+    with pytest.raises((ImportError, RuntimeError)):
         backend._ensure_tools()
 
     assert os.environ.get("SPATIALCLAW_GPU_SERVER_URL"), "must not be left unset"
@@ -102,7 +107,12 @@ def test_an_operator_supplied_gpu_url_is_never_overwritten(monkeypatch) -> None:
     backend._sam3 = None
     backend.config = type("C", (), {"reconstruct_max_frames": 8})()
 
-    with pytest.raises(Exception):
+    # Both failure paths are in scope on purpose. Without spatial_agent installed the
+    # lazy import raises ImportError; with it installed but no reachable tool server,
+    # _ensure_tools raises RuntimeError. The assertion under test is that the env var
+    # is already set by the time either one fires, so narrowing to one would make the
+    # test pass or fail for reasons unrelated to what it checks.
+    with pytest.raises((ImportError, RuntimeError)):
         backend._ensure_tools()
 
     assert os.environ["SPATIALCLAW_GPU_SERVER_URL"] == real

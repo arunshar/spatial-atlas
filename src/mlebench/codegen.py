@@ -264,8 +264,7 @@ class MLCodeGenerator:
             code = code[len("```python") :]
         elif code.startswith("```"):
             code = code[3:]
-        if code.endswith("```"):
-            code = code[:-3]
+        code = code.removesuffix("```")
         code = code.strip()
 
         # Ensure there's a newline at the end
